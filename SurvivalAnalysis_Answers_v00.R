@@ -7,7 +7,7 @@ library(ggplot2)
 library(lubridate)
 
 # Import file
-setwd("C:/Projects/Stack_Exchange/motivation_feedback/data")
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 d.ux.a.00 <- read.csv(file="./d.ux.a.00.csv", stringsAsFactors=FALSE)
 
 keep <- c("ParentId", "Id", "CreationDate", "OwnerUserId",
@@ -16,45 +16,14 @@ keep <- c("ParentId", "Id", "CreationDate", "OwnerUserId",
 
 d.ux.a.01 <- d.ux.a.00[keep]
 
-## Collect USERS information
-# Get OwnerUserId and query the User table
+# Get User Info
+Users <- read.csv(file="./QueryUsers.a.01.csv",stringsAsFactors=FALSE)
 
-UserId <- unique(d.ux.a.00$OwnerUserId)
-
-# # length(UserId)/4
-# # 3022
-# 
-# write.table(paste(UserId[1:3022], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[3023:6044], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.02.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[6045:9066], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.03.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[9067:12088], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.04.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-
-
-setwd("C:/Projects/Stack_Exchange/motivation_feedback/data/Answers")
-QueryUsers01 <- read.csv(file="./QueryUsers.a.01.csv",stringsAsFactors=FALSE)
-QueryUsers02 <- read.csv(file="./QueryUsers.a.02.csv",stringsAsFactors=FALSE)
-QueryUsers03 <- read.csv(file="./QueryUsers.a.03.csv",stringsAsFactors=FALSE)
-QueryUsers04 <- read.csv(file="./QueryUsers.a.04.csv",stringsAsFactors=FALSE)
-
-# Append user query
-Users <- rbind(QueryUsers01, QueryUsers02, QueryUsers03, QueryUsers04)
-rm(QueryUsers01, QueryUsers02, QueryUsers03, QueryUsers04)
-
+# Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
                    by.x = "OwnerUserId", by.y = "Id", all.x = TRUE)
+# 73 users have been deleted from SE
 
-## 73 users have been deleted from SE
 d.ux.a.01$LastAccessDate <- ifelse(is.na(d.ux.a.01$LastAccessDate), d.ux.a.01$LastActivityDate, 
                                    d.ux.a.01$LastAccessDate)
 
