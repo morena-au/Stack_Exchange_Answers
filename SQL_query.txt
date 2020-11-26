@@ -1,0 +1,65 @@
+===================
+TITLE: VOTES BY ASKERS AND DATE
+===================
+
+SELECT p.Id As PostId, v.Id AS VoteId, v.VoteTypeId, 
+       vt.Name AS VoteName, v.UserId AS VoteUserId, 
+       v.CreationDate AS VoteCreationDate, v.BountyAmount
+       
+FROM Posts AS p 
+INNER JOIN Votes AS v 
+  ON v.PostId = p.Id
+INNER JOIN VoteTypes AS vt
+  on v.VoteTypeId = vt.Id
+
+WHERE p.OwnerUserId =  17654
+AND p.PostTypeId = 1
+AND v.CreationDate <= '2010-08-16 00:00:00';
+
+===================
+TITLE: COMMENTS BY ASKERS AND DATE
+===================
+
+SELECT p.Id As PostId, c.Id AS CommentId, c.Score AS CommentScore,
+       c.CreationDate AS CommentCreationDate, 
+       c.UserId AS CommentUserId
+   
+FROM Posts AS p 
+INNER JOIN Comments AS c 
+  ON c.PostId = p.Id
+
+WHERE p.OwnerUserId =  17654
+AND p.PostTypeId = 1
+AND c.CreationDate <= '2010-08-16 00:00:00';
+
+===================
+TITLE: VOTES BY ANSWERER AND DATE
+===================
+
+SELECT p.Id As PostId, v.Id AS VoteId, p.OwnerUserId, v.VoteTypeId, 
+       vt.Name AS VoteName, v.CreationDate AS VoteCreationDate
+       
+FROM Posts AS p 
+INNER JOIN Votes AS v 
+  ON v.PostId = p.Id
+INNER JOIN VoteTypes AS vt
+  on v.VoteTypeId = vt.Id
+
+WHERE p.OwnerUserId IN ()
+AND p.PostTypeId = 2;
+
+===================
+TITLE: COMMENTS BY ANSWERS AND DATE
+===================
+
+SELECT p.Id As PostId, c.Id AS CommentId, c.Score AS CommentScore,
+       c.CreationDate AS CommentCreationDate, 
+       c.UserId AS CommentUserId
+   
+FROM Posts AS p 
+INNER JOIN Comments AS c 
+  ON c.PostId = p.Id
+
+WHERE p.OwnerUserId =  17654
+AND p.PostTypeId = 1
+AND c.CreationDate <= '2010-08-16 00:00:00';
