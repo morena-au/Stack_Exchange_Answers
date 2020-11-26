@@ -78,9 +78,66 @@ rm(tmp)
 data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
                              data_str_all$tstop + 1, data_str_all$tstop)
 
+# Consider the time between answers as output
 data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
 
+# Consider all the changes the answer went through before the next post
 PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
+PostHistoryTypes <- read.csv("./PostHistoryTypes.csv", stringsAsFactors = FALSE)
+
+keep <- c("PostHistoryTypeId", "PostId", "CreationDate", "UserId")
+PostHistory <- PostHistory[keep]
+PostHistory <- merge(PostHistory, PostHistoryTypes, 
+                     by.x = "PostHistoryTypeId", by.y = "Id", all.x = TRUE)
+rm(PostHistoryTypes)
+
+# Keep only Edit Body
+PostHistory <- subset(PostHistory, PostHistoryTypeId == 5)
+colnames(PostHistory)[3] <- "EditDate"
+
+tmp_history <- data_str_all %>%
+  select(c("OwnerUserId", "Id", "CreationDate"))
+
+tmp_history <- merge(tmp_history, PostHistory, by.x = "Id", by.y = "PostId", all.x = TRUE)
+
+# Remove edits made by the same author
+tmp_history <- subset(tmp_history, OwnerUserId != UserId)
+
+# Date Formatting 
+tmp_history$CreationDate <- as.POSIXct(tmp_history$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+tmp_history$EditDate <- as.POSIXct(tmp_history$EditDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# With TT: each answer has the count of all edits made on all the posts
+# wrote by the author and by who previous to the current answer
+
+
+# Initialize the dataframe and the row count
+EditCount_df <- data.frame(Id = as.numeric(), 
+                 EditCount = as.numeric(),
+                 stringsAsFactors=FALSE) 
+row = 1
+
+# 1. For all the users
+for (i in unique(tmp_history$OwnerUserId)) {
+  tmp <- subset(tmp_history, OwnerUserId == i)
+  # 2. For each answer check how many Edits come before
+  # than the current answer CreationDate
+  for (n in unique(tmp$Id)) {
+    # Store the result in the dataframe
+    EditCount_df[row, 1] <- n
+    EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$EditDate)
+    row = row + 1
+  }
+}
+
+rm(tmp, tmp_history, i, keep, n, row)
+
+data_str_all <- merge(data_str_all, EditCount_df, 
+                      by = "Id", all.x = TRUE)
+
+
+
+#TODO: truncation is necessary also for PWP-TT (braga2018recurrent) 
 
 # Save the file
 write.csv(data_str_all, "data_str_all.csv", row.names = FALSE)
@@ -127,8 +184,7 @@ write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
 
 
 
-# data_str_a$EditDummy <- ifelse(is.na(data_str_a$LastEditDate), 0, 1)
-# data_str_all$EditDummy <- ifelse(is.na(data_str_all$LastEditDate), 0, 1)
+
 
 # # Change them into factors
 # data_str_a$EditDummy <- factor(data_str_a$EditDummy)
