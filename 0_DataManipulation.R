@@ -80,6 +80,8 @@ data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop,
 
 data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
 
+PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
+
 # Save the file
 write.csv(data_str_all, "data_str_all.csv", row.names = FALSE)
 
@@ -124,41 +126,6 @@ write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
 
 
 
-
-
-
-
-
-
-
-# # Adjust for reverse causality
-# # if edited before the next answer
-# # Collect POST HISTORY information
-# PostId <- unique(data_str_all$Id)
-# 
-# #Split PostId since query reach the 50000
-# # > length(PostId)/3
-# # [1] 23525
-# write.table(paste(PostId[1:23525], collapse = ","),
-#             "C:/Projects/Stack_Exchange/motivation_feedback/data/Answers/PostId_a1.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(PostId[23526:47051], collapse = ","),
-#             "C:/Projects/Stack_Exchange/motivation_feedback/data/Answers/PostId_a2.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(PostId[47052:70575], collapse = ","),
-#             "C:/Projects/Stack_Exchange/motivation_feedback/data/Answers/PostId_a3.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-
-PostHistory_a1 <- read.csv(file="./PostHistory_a1.csv",stringsAsFactors=FALSE)
-PostHistory_a2 <- read.csv(file="./PostHistory_a2.csv",stringsAsFactors=FALSE)
-PostHistory_a3 <- read.csv(file="./PostHistory_a3.csv",stringsAsFactors=FALSE)
-
-# Append user query
-PostHistory <- rbind(PostHistory_a1, PostHistory_a2, PostHistory_a3)
-
-rm(PostHistory_a1, PostHistory_a2, PostHistory_a3)
 
 # data_str_a$EditDummy <- ifelse(is.na(data_str_a$LastEditDate), 0, 1)
 # data_str_all$EditDummy <- ifelse(is.na(data_str_all$LastEditDate), 0, 1)
