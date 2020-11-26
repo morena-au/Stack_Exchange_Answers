@@ -30,17 +30,12 @@ d.ux.a.01$LastAccessDate <- ifelse(is.na(d.ux.a.01$LastAccessDate), d.ux.a.01$La
 # Get VOTES information
 Votes <- read.csv(file="./Votes.csv",stringsAsFactors=FALSE)
 
-# Import Comments by Post and Date
-CommentDate_01 <- read.csv(file="./QueryComments_01.csv",stringsAsFactors=FALSE)
-CommentDate_02 <- read.csv(file="./QueryComments_02.csv",stringsAsFactors=FALSE)
-CommentDate_03 <- read.csv(file="./QueryComments_03.csv",stringsAsFactors=FALSE)
-CommentDate_04 <- read.csv(file="./QueryComments_04.csv",stringsAsFactors=FALSE)
+# Get Comments by Post and Date
+Comments <- read.csv(file="./Comments.csv",stringsAsFactors=FALSE)
 
-# Append user query
-Comments <- rbind(CommentDate_01, CommentDate_02, CommentDate_03, CommentDate_04)
-rm(CommentDate_01, CommentDate_02, CommentDate_03, CommentDate_04)
 
 d.ux.a.02 <- d.ux.a.01[d.ux.a.01$CreationDate < "2019-01-01 00:00:00", ]
+
 # length(unique(d.ux.a.02$OwnerUserId))
 # 
 # user_freq <- count(d.ux.a.02, OwnerUserId)
