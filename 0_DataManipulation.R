@@ -2,8 +2,6 @@
 library(plyr)
 library(dplyr)
 library(tidyr)
-library(survival)
-library(ggplot2)
 library(lubridate)
 
 # Import file
@@ -33,24 +31,9 @@ Votes <- read.csv(file="./Votes.csv",stringsAsFactors=FALSE)
 # Get Comments by Post and Date
 Comments <- read.csv(file="./Comments.csv",stringsAsFactors=FALSE)
 
-
+# Extract Answers before 01/01/2019
 d.ux.a.02 <- d.ux.a.01[d.ux.a.01$CreationDate < "2019-01-01 00:00:00", ]
 
-# length(unique(d.ux.a.02$OwnerUserId))
-# 
-# user_freq <- count(d.ux.a.02, OwnerUserId)
-# recurrence <- subset(user_freq, n >= 2)
-# summary(recurrence)
-# 
-# rec3 <- subset(recurrence, n <= 3)
-# rec4 <- subset(recurrence, n <= 4)
-# rec5 <- subset(recurrence, n <= 5)
-# rec6 <- subset(recurrence, n <= 6)
-# rec7 <- subset(recurrence, n <= 7)
-# rec8 <- subset(recurrence, n <= 8)
-# rec9 <- subset(recurrence, n <= 9)
-# rec10 <- subset(recurrence, n <= 10)
-# summary(rec10)
 
 ## DATA STRUCTURE FOR MODELLING RECURRENT EVENT DATA
 tmp <- d.ux.a.02 %>%
@@ -86,42 +69,19 @@ tmp <- tmp %>%
 
 tmp$test <- NULL
 
-length(unique(tmp$OwnerUserId))
-user_freq <- count(tmp, OwnerUserId)
-table(user_freq$n)
-user_freq <- subset(user_freq, n <= 10)
-user_freq$OwnerUserId <- NULL
-colnames(user_freq) <- "answer_seq"
-contributors_seq <- count(user_freq, answer_seq)
-
-ggplot(contributors_seq, aes(x = factor(answer_seq), y = n)) +
-  geom_bar(stat = "identity", color="black", fill="white") +
-  ggtitle("Count of contributors per total answers given") +
-  ylab("Count") + 
-  xlab("Total Answers") +
-  theme_minimal()
-
 # consider the full history 
 data_str_all <- data.frame(tmp)
-
-# Truncate observations after the tenth event
-tmp <- subset(tmp, event <= 10)
-cumulative_answers <- tmp[,c("event")]
-cumulative_answers <- count(cumulative_answers, event)
-data_str_a <- data.frame(tmp)
 rm(tmp)
 
-ggplot(cumulative_answers, aes(x = factor(event), y = n)) +
-  geom_bar(stat = "identity", color="black", fill="white") +
-  ggtitle("Count of contributors per sequence of the answer") +
-  ylab("Count") + 
-  xlab("Answer Sequence") +
-  theme_minimal()
+## ADD FURTHER VARIABLES
+# Add one secs to tstop where tstart and tstop are equal (TT)
+data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
+                             data_str_all$tstop + 1, data_str_all$tstop)
 
+data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
 
-
-# setwd("C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers")
-# write.csv(data_str_a, "data_str_a.csv")
+# Save the file
+write.csv(data_str_all, "data_str_all.csv", row.names = FALSE)
 
 'We consider data from a study with 11778 contributors in User Experience
 Stack Exchange. The study is designed to evaluate the effect of covariates
@@ -132,14 +92,14 @@ Contributors were censored at the time last visit to the website is
 older than 6 months (https://stackoverflow.blog/2009/02/16/when-is-an-account-abandoned/).
 
 Contributors were followed until 2018-12-31. 
-40% of thecontributors had at least one recurrence (Answered at least 2 answers)
+40% of the contributors had at least one recurrence (Answered at least 2 answers)
 Median number of recurrences is 4, varying from 2 answers given to 919.
 Among those with at least one recurrence, 79% had at most 10 recurrences.
 We truncate the dataset after the tenth event due to the small number of events
 in the later strata.'
 
-length(unique(data_str_a$OwnerUserId))
-user_freq <- count(data_str_a, OwnerUserId)
+length(unique(data_str_all$OwnerUserId))
+user_freq <- count(data_str_all, OwnerUserId)
 recurrence <- subset(user_freq, n >= 2)
 summary(recurrence)
 
@@ -153,13 +113,23 @@ rec9 <- subset(recurrence, n <= 9)
 rec10 <- subset(recurrence, n <= 10)
 summary(rec10)
 
+rm(rec3, rec4, rec5, rec6, rec7, rec8, rec9)
 
-# Add one secs to tstop where tstart and tstop are equal (TT)
-data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
-                           data_str_all$tstop + 1, data_str_all$tstop)
 
-data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
-hist(log(data_str_all$TimeBetweenAnswers))
+# Truncate observations after the tenth event
+data_str_tr <- subset(data_str_all, event <= 10)
+
+# Save the file
+write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
+
+
+
+
+
+
+
+
+
 
 # # Adjust for reverse causality
 # # if edited before the next answer
