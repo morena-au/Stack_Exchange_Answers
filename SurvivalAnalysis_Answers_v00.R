@@ -17,7 +17,7 @@ keep <- c("ParentId", "Id", "CreationDate", "OwnerUserId",
 d.ux.a.01 <- d.ux.a.00[keep]
 
 # Get User Info
-Users <- read.csv(file="./QueryUsers.a.01.csv",stringsAsFactors=FALSE)
+Users <- read.csv(file="./Users.csv",stringsAsFactors=FALSE)
 
 # Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
@@ -27,84 +27,8 @@ d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")],
 d.ux.a.01$LastAccessDate <- ifelse(is.na(d.ux.a.01$LastAccessDate), d.ux.a.01$LastActivityDate, 
                                    d.ux.a.01$LastAccessDate)
 
-## Collect VOTES information
-# Split UsersId since query reach the 50000 
-# write.table(paste(UserId[1:755], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01A.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[756:1132], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01Ba.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[1133:1510], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01Bb.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[1511:2265], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01C.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[2266:3022], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.01D.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-
-
-# write.table(paste(UserId[3023:3778], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.02A.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[3779:4534], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.02B.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[4535:5290], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.02C.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[5291:6044], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.02D.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-
-# write.table(paste(UserId[6045:7555], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.03A.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-# 
-# write.table(paste(UserId[7556:9066], collapse = ","),
-#             "C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers/UserId.a.03B.txt",
-#             sep = ",", row.names = FALSE, col.names = FALSE)
-
-# Import Votes by Post 
-VotesPostDate_01_a <- read.csv(file="./QueryVotes_01A.csv",stringsAsFactors=FALSE)
-VotesPostDate_01_ba <- read.csv(file="./QueryVotes_01Ba.csv",stringsAsFactors=FALSE)
-VotesPostDate_01_bb <- read.csv(file="./QueryVotes_01Bb.csv",stringsAsFactors=FALSE)
-VotesPostDate_01_c <- read.csv(file="./QueryVotes_01C.csv",stringsAsFactors=FALSE)
-VotesPostDate_01_d <- read.csv(file="./QueryVotes_01D.csv",stringsAsFactors=FALSE)
-
-VotesPostDate_02_a <- read.csv(file="./QueryVotes_02A.csv",stringsAsFactors=FALSE)
-VotesPostDate_02_b <- read.csv(file="./QueryVotes_02B.csv",stringsAsFactors=FALSE)
-VotesPostDate_02_c <- read.csv(file="./QueryVotes_02C.csv",stringsAsFactors=FALSE)
-VotesPostDate_02_d <- read.csv(file="./QueryVotes_02D.csv",stringsAsFactors=FALSE)
-
-VotesPostDate_03_a <- read.csv(file="./QueryVotes_03A.csv",stringsAsFactors=FALSE)
-VotesPostDate_03_b <- read.csv(file="./QueryVotes_03B.csv",stringsAsFactors=FALSE)
-
-VotesPostDate_04 <- read.csv(file="./QueryVotes_04.csv",stringsAsFactors=FALSE)
-
-# Append user query
-Votes <- rbind(VotesPostDate_01_a, VotesPostDate_01_ba, VotesPostDate_01_bb, 
-               VotesPostDate_01_c, VotesPostDate_01_d, 
-               VotesPostDate_02_a, VotesPostDate_02_b, VotesPostDate_02_c,
-               VotesPostDate_02_d,
-               VotesPostDate_03_a, VotesPostDate_03_b,
-               VotesPostDate_04)
-
-rm(VotesPostDate_01_a, VotesPostDate_01_ba, VotesPostDate_01_bb, 
-  VotesPostDate_01_c, VotesPostDate_01_d, 
-  VotesPostDate_02_a, VotesPostDate_02_b, VotesPostDate_02_c,
-  VotesPostDate_02_d,
-  VotesPostDate_03_a, VotesPostDate_03_b,
-  VotesPostDate_04)
+# Get VOTES information
+Votes <- read.csv(file="./Votes.csv",stringsAsFactors=FALSE)
 
 # Import Comments by Post and Date
 CommentDate_01 <- read.csv(file="./QueryComments_01.csv",stringsAsFactors=FALSE)
