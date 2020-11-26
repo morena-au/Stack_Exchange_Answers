@@ -29,9 +29,9 @@ write.table(paste(PostId[47052:70575], collapse = ","),
             sep = ",", row.names = FALSE, col.names = FALSE)
 
 # Once downloaded merge them together and save in one file
-PostHistory_a1 <- read.csv(file="./PostHistory_a1.csv",stringsAsFactors=FALSE)
-PostHistory_a2 <- read.csv(file="./PostHistory_a2.csv",stringsAsFactors=FALSE)
-PostHistory_a3 <- read.csv(file="./PostHistory_a3.csv",stringsAsFactors=FALSE)
+PostHistory_a1 <- read.csv(file="./old/PostHistory/PostHistory_a1.csv",stringsAsFactors=FALSE)
+PostHistory_a2 <- read.csv(file="./old/PostHistory/PostHistory_a2.csv",stringsAsFactors=FALSE)
+PostHistory_a3 <- read.csv(file="./old/PostHistory/PostHistory_a3.csv",stringsAsFactors=FALSE)
 
 # Append user query
 PostHistory <- rbind(PostHistory_a1, PostHistory_a2, PostHistory_a3)
