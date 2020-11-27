@@ -2,15 +2,14 @@
 library(plyr)
 library(dplyr)
 library(tidyr)
-library(lubridate)
+
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 d.ux.a.00 <- read.csv(file="./d.ux.a.00.csv", stringsAsFactors=FALSE)
 
 keep <- c("ParentId", "Id", "CreationDate", "OwnerUserId",
-          "LastEditorUserId", "LastEditDate", "LastActivityDate", 
-          "Body.clean")
+          "LastActivityDate")
 
 d.ux.a.01 <- d.ux.a.00[keep]
 
@@ -108,7 +107,7 @@ tmp_history$CreationDate <- as.POSIXct(tmp_history$CreationDate, format = "%Y-%m
 tmp_history$EditDate <- as.POSIXct(tmp_history$EditDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 
 # With TT: each answer has the count of all edits made on all the posts
-# wrote by the author and by who previous to the current answer
+# wrote by the author by others previous to the current answer
 
 
 # Initialize the dataframe and the row count
@@ -135,6 +134,134 @@ rm(tmp, tmp_history, i, keep, n, row)
 data_str_all <- merge(data_str_all, EditCount_df, 
                       by = "Id", all.x = TRUE)
 
+# Adjust for missing values
+# if event = 1, EditCount is missing >> 0 no edits on the first answer
+data_str_all$EditCount[data_str_all$event == 1 & is.na(data_str_all$EditCount)] <- 0
+
+data_str_all <- data_str_all %>%
+  arrange(OwnerUserId, event)
+
+# 1. For all the users
+for (i in unique(data_str_all$OwnerUserId)) {
+  # 2. For all the events
+  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
+    # if EditCount is nan copy the value of EditCount from previous event
+    if (is.na(data_str_all[(data_str_all$event == n &
+                            data_str_all$OwnerUserId == i), "EditCount"])) {
+      data_str_all[(data_str_all$event == n &
+                      data_str_all$OwnerUserId == i),
+                   "EditCount"] <- data_str_all[(data_str_all$event == n-1 &
+                                                   data_str_all$OwnerUserId == i), "EditCount"]
+    }
+  }
+}
+
+# Get the accumulative votes up, down until for all the answers by the author
+# until previously the current answer date
+
+tmp_Votes <- data_str_all %>%
+  select(c("OwnerUserId", "Id", "CreationDate"))
+
+
+tmp_Votes <- merge(tmp_Votes, Votes[, c("PostId", "VoteTypeId", "VoteName",
+                                        "VoteCreationDate")], by.x = "Id", by.y = "PostId")
+
+# Keep only AcceptedByOriginator, UpMod and DownMod
+tmp_Votes <- subset(tmp_Votes, VoteTypeId %in% c(1, 2, 3))
+
+
+# Date Formatting 
+tmp_Votes$CreationDate <- as.POSIXct(tmp_Votes$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+# Consider votes as they were given at the end of the day
+# Approx: so no future votes are given to answers (avoid reverse causality)
+tmp_Votes$VoteCreationDate <- as.POSIXct(tmp_Votes$VoteCreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC") + 23*60*60 + 59*60 + 59
+
+# Initialize the dataframe and the row count
+VoteCount_df <- data.frame(Id = as.numeric(), 
+                           AcceptedByOriginator = as.numeric(),
+                           UpMod = as.numeric(), 
+                           DownMod = as.numeric(),
+                           stringsAsFactors=FALSE) 
+row = 1
+
+# 1. For all the users
+for (i in unique(tmp_Votes$OwnerUserId)) {
+  tmp <- subset(tmp_Votes, OwnerUserId == i)
+  # 2. For each answer check how many AcceptedByOriginator, UpMod and DownMod that
+  # come before than the current answer CreationDate
+  for (n in unique(tmp$Id)) {
+    # Store the result in the dataframe
+    VoteCount_df[row, 1] <- n
+    VoteCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate & 
+                                  tmp$VoteTypeId == 1)
+    VoteCount_df[row, 3] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate & 
+                                  tmp$VoteTypeId == 2)
+    VoteCount_df[row, 4] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate &
+                                  tmp$VoteTypeId == 3)
+    row = row + 1
+  }
+}
+
+rm(i, n, row, tmp, tmp_Votes)
+
+
+data_str_all <- merge(data_str_all, VoteCount_df, 
+                      by = "Id", all.x = TRUE)
+
+# Adjust for missing values
+data_str_all <- data_str_all %>%
+  arrange(OwnerUserId, event)
+
+# if event = 1, AcceptedByOriginator is missing >> no AcceptedByOriginator on the first answer
+data_str_all$AcceptedByOriginator[data_str_all$event == 1 & is.na(data_str_all$AcceptedByOriginator)] <- 0
+# 1. For all the users
+for (i in unique(data_str_all$OwnerUserId)) {
+  # 2. For all the events
+  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
+    # if AcceptedByOriginator is nan copy the value of AcceptedByOriginator from previous event
+    if (is.na(data_str_all[(data_str_all$event == n &
+                            data_str_all$OwnerUserId == i), "AcceptedByOriginator"])) {
+      data_str_all[(data_str_all$event == n &
+                      data_str_all$OwnerUserId == i),
+                   "AcceptedByOriginator"] <- data_str_all[(data_str_all$event == n-1 &
+                                                   data_str_all$OwnerUserId == i), "AcceptedByOriginator"]
+    }
+  }
+}
+
+# if event = 1, UpMod is missing>> no UpMod on the first answer
+data_str_all$UpMod[data_str_all$event == 1 & is.na(data_str_all$UpMod)] <- 0
+# 1. For all the users
+for (i in unique(data_str_all$OwnerUserId)) {
+  # 2. For all the events
+  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
+    # if UpMod is nan copy the value of UpMod from previous event
+    if (is.na(data_str_all[(data_str_all$event == n &
+                            data_str_all$OwnerUserId == i), "UpMod"])) {
+      data_str_all[(data_str_all$event == n &
+                      data_str_all$OwnerUserId == i),
+                   "UpMod"] <- data_str_all[(data_str_all$event == n-1 &
+                                                              data_str_all$OwnerUserId == i), "UpMod"]
+    }
+  }
+}
+
+# if event = 1, DownMod is missing >> no DownMod on the first answer
+data_str_all$DownMod[data_str_all$event == 1 & is.na(data_str_all$DownMod)] <- 0
+# 1. For all the users
+for (i in unique(data_str_all$OwnerUserId)) {
+  # 2. For all the events
+  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
+    # if DownMod is nan copy the value of DownMod from previous event
+    if (is.na(data_str_all[(data_str_all$event == n &
+                            data_str_all$OwnerUserId == i), "DownMod"])) {
+      data_str_all[(data_str_all$event == n &
+                      data_str_all$OwnerUserId == i),
+                   "DownMod"] <- data_str_all[(data_str_all$event == n-1 &
+                                               data_str_all$OwnerUserId == i), "DownMod"]
+    }
+  }
+}
 
 
 #TODO: truncation is necessary also for PWP-TT (braga2018recurrent) 
@@ -197,75 +324,7 @@ write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
 # data_str_q$LastEditorUser[is.na(data_str_q$LastEditorUser)] <- 0
 # data_str_q$LastEditorUser <- factor(data_str_q$LastEditorUser)
 
-# Get the accumulative votes up, down until 3 months after the question
-# was asked at a (constant time frame)
 
-tmp_Votes <- data_str_a %>%
-  group_by(OwnerUserId) %>%
-  arrange(CreationDate) %>%
-  select(c("OwnerUserId", "Id", "CreationDate"))
-
-
-tmp_Votes <- merge(tmp_Votes, Votes[, c("PostId", "VoteTypeId", "VoteName",
-                                        "VoteCreationDate")], by.x = "Id", by.y = "PostId")
-
-# filter for the votes up to a certain date
-tmp_Votes <- subset(tmp_Votes, VoteCreationDate <= ymd(as.Date(CreationDate)) %m+% months(3))
-
-tmp_Votes <- tmp_Votes[, c("Id", "VoteName")]
-
-tmp_Votes <- tmp_Votes %>%
-  group_by(Id) %>%
-  summarise(UpMod = sum(VoteName == "UpMod"),
-            DownMod = sum(VoteName == "DownMod"))
-
-data_str_a <- merge(data_str_a, tmp_Votes, by = "Id", all.x = TRUE)
-rm(tmp_Votes)
-
-#votes for all
-tmp_Votes <- data_str_all %>%
-  group_by(OwnerUserId) %>%
-  arrange(CreationDate) %>%
-  select(c("OwnerUserId", "Id", "CreationDate"))
-
-
-tmp_Votes <- merge(tmp_Votes, Votes[, c("PostId", "VoteTypeId", "VoteName",
-                                        "VoteCreationDate")], by.x = "Id", by.y = "PostId")
-
-# filter for the votes up to a certain date
-tmp_Votes <- subset(tmp_Votes, VoteCreationDate <= ymd(as.Date(CreationDate)) %m+% months(3))
-
-tmp_Votes <- tmp_Votes[, c("Id", "VoteName")]
-
-tmp_Votes <- tmp_Votes %>%
-  group_by(Id) %>%
-  summarise(UpMod = sum(VoteName == "UpMod"),
-            DownMod = sum(VoteName == "DownMod"))
-
-data_str_all <- merge(data_str_all, tmp_Votes, by = "Id", all.x = TRUE)
-rm(tmp_Votes)
-
-# Cope with missing regarding vote (questions in the same day, no vote at all)
-data_str_all$UpMod[is.na(data_str_all$UpMod)] <- 0
-data_str_all$DownMod[is.na(data_str_all$DownMod)] <- 0
-data_str_all$score <- data_str_all$UpMod - data_str_all$DownMod
-data_str_all$up_votes_ratio <- (data_str_all$UpMod)/(data_str_all$UpMod + data_str_all$DownMod)
-data_str_all$up_votes_ratio <- ifelse(is.na(data_str_all$up_votes_ratio), 0, 
-                                       data_str_all$up_votes_ratio)
-# INTERPRETATION
-# 0 >> NO VOTE
-# 0 >> ALL NEGATIVE
-# 0 < X < 1 >> FRACTION OF POSITIVE 
-# 1 >> ALL POSITIVE
-
-# data_str_a$fraction_down_score <- (data_str_a$DownMod)/(data_str_a$UpMod + data_str_a$DownMod)
-# data_str_a$fraction_down_score <- ifelse(is.na(data_str_a$fraction_down_score), 0, 
-#                                        data_str_a$fraction_down_score)
-# 
-# p <- ggplot(data_str_a, aes(x = status, y = score, group = status, fill = status)) + # group = Close,
-#   geom_violin(trim=FALSE)
-# 
-# p
 
 # Get accumulative comments count after a constant time frame since answer publication
 tmp_Comments <- data_str_a %>%
