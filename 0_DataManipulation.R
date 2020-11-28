@@ -264,6 +264,96 @@ for (i in unique(data_str_all$OwnerUserId)) {
 }
 
 
+# Get accumulative comments count before the current answer
+tmp_Comments <- data_str_all %>%
+  select(c("OwnerUserId", "Id", "CreationDate"))
+
+tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
+                      by.x = "Id", by.y = "PostId")
+
+# Date Formatting 
+tmp_Comments$CreationDate <- as.POSIXct(tmp_Comments$CreationDate, 
+                                        format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+tmp_Comments$CommentCreationDate <- as.POSIXct(tmp_Comments$CommentCreationDate, 
+                                               format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# With TT: each answer has the count of all comments made on all the posts
+# wrote by the author previous to the current answer
+
+
+# Initialize the dataframe and the row count
+CommentCount_df <- data.frame(Id = as.numeric(), 
+                           CommentCount = as.numeric(),
+                           stringsAsFactors=FALSE) 
+row = 1
+
+# 1. For all the users
+for (i in unique(tmp_Comments$OwnerUserId)) {
+  tmp <- subset(tmp_Comments, OwnerUserId == i)
+  # 2. For each answer check how many Comments come before
+  # the current answer CreationDate
+  for (n in unique(tmp$Id)) {
+    # Store the result in the dataframe
+    CommentCount_df[row, 1] <- n
+    CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$CommentCreationDate)
+    row = row + 1
+  }
+}
+
+rm(tmp, tmp_Comments, i, n, row)
+
+data_str_all <- merge(data_str_all, CommentCount_df, 
+                      by = "Id", all.x = TRUE)
+
+# Adjust for missing values
+# if event = 1 and CommentsCount is missing >> 0 no comments on the first answer
+data_str_all$CommentCount[data_str_all$event == 1 & is.na(data_str_all$CommentCount)] <- 0
+
+data_str_all <- data_str_all %>%
+  arrange(OwnerUserId, event)
+
+# 1. For all the users
+for (i in unique(data_str_all$OwnerUserId)) {
+  # 2. For all the events
+  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
+    # if CommentCount is nan copy the value of CommentCount from previous event
+    if (is.na(data_str_all[(data_str_all$event == n &
+                            data_str_all$OwnerUserId == i), "CommentCount"])) {
+      data_str_all[(data_str_all$event == n &
+                      data_str_all$OwnerUserId == i),
+                   "CommentCount"] <- data_str_all[(data_str_all$event == n-1 &
+                                                   data_str_all$OwnerUserId == i), "CommentCount"]
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #TODO: truncation is necessary also for PWP-TT (braga2018recurrent) 
 
 # Save the file
@@ -313,67 +403,6 @@ write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
 
 
 
-# # Change them into factors
-# data_str_a$EditDummy <- factor(data_str_a$EditDummy)
-# data_str_all$EditDummy <- factor(data_str_all$EditDummy)
-
-# TODO: should not be relevant since the minority of the answers are edited
-# # Include in the test whether last edit was made by the asking user (LastEditorUser = 1)
-# data_str_q$LastEditorUser <- ifelse(data_str_q$OwnerUserId == data_str_q$LastEditorUserId, 1, 0)
-# # input 0 to all the missing > the focus is given to the user that made the edit
-# data_str_q$LastEditorUser[is.na(data_str_q$LastEditorUser)] <- 0
-# data_str_q$LastEditorUser <- factor(data_str_q$LastEditorUser)
-
-
-
-# Get accumulative comments count after a constant time frame since answer publication
-tmp_Comments <- data_str_a %>%
-  group_by(OwnerUserId) %>%
-  arrange(CreationDate) %>%
-  select(c("OwnerUserId", "Id", "CreationDate"))
-
-tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
-                      by.x = "Id", by.y = "PostId")
-
-# filter for the comments up to a certain date
-tmp_Comments <- subset(tmp_Comments, CommentCreationDate <= ymd(as.Date(CreationDate)) %m+% months(3))
-
-tmp_Comments <- tmp_Comments %>%
-  group_by(Id) %>%
-  tally()
-
-colnames(tmp_Comments)[2] <- "CommentCount"
-data_str_a <- merge(data_str_a, tmp_Comments, by = "Id", all.x = TRUE)
-rm(tmp_Comments)
-
-data_str_a$CommentCount[is.na(data_str_a$CommentCount)] <- 0
-data_str_a$CommentDummy <- ifelse(data_str_a$CommentCount == 0, 0, 1)
-data_str_a$CommentDummy <- factor(data_str_a$CommentDummy)
-
-
-# Comments for TT
-tmp_Comments <- data_str_all %>%
-  group_by(OwnerUserId) %>%
-  arrange(CreationDate) %>%
-  select(c("OwnerUserId", "Id", "CreationDate"))
-
-tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
-                      by.x = "Id", by.y = "PostId")
-
-# filter for the comments up to a certain date
-tmp_Comments <- subset(tmp_Comments, CommentCreationDate <= ymd(as.Date(CreationDate)) %m+% months(3))
-
-tmp_Comments <- tmp_Comments %>%
-  group_by(Id) %>%
-  tally()
-
-colnames(tmp_Comments)[2] <- "CommentCount"
-data_str_all <- merge(data_str_all, tmp_Comments, by = "Id", all.x = TRUE)
-rm(tmp_Comments)
-
-data_str_all$CommentCount[is.na(data_str_all$CommentCount)] <- 0
-data_str_all$CommentDummy <- ifelse(data_str_all$CommentCount == 0, 0, 1)
-data_str_all$CommentDummy <- factor(data_str_all$CommentDummy)
 
 # TODO consider making it a dummy
 
