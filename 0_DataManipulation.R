@@ -77,6 +77,11 @@ rm(tmp)
 data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
                              data_str_all$tstop + 1, data_str_all$tstop)
 
+# insert the end date column for censured observations
+data_str_all$EndDate <- ifelse(data_str_all$LastAccessDate <= "2019-01-01 00:00:00", 
+                               data_str_all$LastAccessDate, "2019-01-01 00:00:00")
+data_str_all$EndDate <- as.POSIXct(data_str_all$EndDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
 # Consider the time between answers as output
 data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
 
@@ -118,14 +123,22 @@ row = 1
 
 # 1. For all the users
 for (i in unique(tmp_history$OwnerUserId)) {
+  # Create a subset dataframe with all the history from an unique author
   tmp <- subset(tmp_history, OwnerUserId == i)
   # 2. For each answer check how many Edits come before
-  # than the current answer CreationDate
-  for (n in unique(tmp$Id)) {
+  # the following answer CreationDate
+  post_id <- unique(tmp$Id)
+  for (n in seq_along(post_id)) {
     # Store the result in the dataframe
-    EditCount_df[row, 1] <- n
-    EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$EditDate)
-    row = row + 1
+    if (post_id[[n]] != max(post_id)) {
+      EditCount_df[row, 1] <- post_id[[n]]
+      EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$EditDate)
+      row = row + 1
+    } else {
+      EditCount_df[row, 1] <- post_id[[n]]
+      EditCount_df[row, 2] <- sum(unique(data_str_all$EndDate[data_str_all$OwnerUserId == i]) > tmp$EditDate)
+      row = row + 1
+    }
   }
 }
 
@@ -135,7 +148,7 @@ data_str_all <- merge(data_str_all, EditCount_df,
                       by = "Id", all.x = TRUE)
 
 # Adjust for missing values
-# if event = 1, EditCount is missing >> 0 no edits on the first answer
+# if event = 1, EditCount is missing >> 0 no edits before the second answer
 data_str_all$EditCount[data_str_all$event == 1 & is.na(data_str_all$EditCount)] <- 0
 
 data_str_all <- data_str_all %>%
