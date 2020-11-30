@@ -31,8 +31,21 @@ Votes <- read.csv(file="./Votes.csv",stringsAsFactors=FALSE)
 Comments <- read.csv(file="./Comments.csv",stringsAsFactors=FALSE)
 
 # Extract Answers before 01/01/2019
-d.ux.a.02 <- d.ux.a.01[d.ux.a.01$CreationDate < "2019-01-01 00:00:00", ]
+d.ux.a.01$CreationDate <- as.POSIXct(d.ux.a.01$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+d.ux.a.02 <- d.ux.a.01[d.ux.a.01$CreationDate < as.POSIXct("2019-01-01"), ]
 
+#DataFormatting
+d.ux.a.02$LastAccessDate <- as.POSIXct(d.ux.a.02$LastAccessDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+UniqueLastAccess <- d.ux.a.02 %>%
+  group_by(OwnerUserId) %>%
+  arrange(LastAccessDate) %>%
+  filter(row_number()==n()) %>%
+  select(Id, OwnerUserId, LastAccessDate)
+
+d.ux.a.02$LastAccessDate <- NULL
+d.ux.a.02 <- merge(d.ux.a.02, UniqueLastAccess[, c("OwnerUserId", "LastAccessDate")], 
+                                  by = "OwnerUserId", all.x = TRUE)
 
 ## DATA STRUCTURE FOR MODELLING RECURRENT EVENT DATA
 tmp <- d.ux.a.02 %>%
@@ -46,9 +59,9 @@ tmp$status <- ifelse(is.na(tmp$tstop), 0, 1)
 
 
 # End date for censured observations
-tmp$test <- ifelse(tmp$LastAccessDate <= "2019-01-01 00:00:00", # contributor lost before the end of the study
+tmp$test <- ifelse(tmp$LastAccessDate <= as.POSIXct("2019-01-01"), # contributor lost before the end of the study
                    as.numeric(difftime(tmp$LastAccessDate, tmp$CreationDate, tz = "UTC"), units = "secs"),
-                   as.numeric(difftime("2019-01-01 00:00:00", tmp$CreationDate, tz = "UTC"), units = "secs"))
+                   as.numeric(difftime(as.POSIXct("2019-01-01"), tmp$CreationDate, tz = "UTC"), units = "secs"))
 
 # adjust users with LastAccessDate lower than CreationDate 
 tmp$test <- ifelse(tmp$test < 0, 0, tmp$test)
@@ -77,13 +90,14 @@ rm(tmp)
 data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
                              data_str_all$tstop + 1, data_str_all$tstop)
 
-# insert the end date column for censured observations
-data_str_all$EndDate <- ifelse(data_str_all$LastAccessDate <= "2019-01-01 00:00:00", 
-                               data_str_all$LastAccessDate, "2019-01-01 00:00:00")
-data_str_all$EndDate <- as.POSIXct(data_str_all$EndDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-
 # Consider the time between answers as output
 data_str_all$TimeBetweenAnswers <- data_str_all$tstop - data_str_all$tstart
+
+# Add EndDate of the contributor
+data_str_all$EndDate <- ifelse(data_str_all$LastAccessDate <= as.POSIXct("2019-01-01"), # contributor lost before the end of the study
+                               data_str_all$LastAccessDate,
+                               as.POSIXct("2019-01-01"))
+
 
 # Consider all the changes the answer went through before the next post
 PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
@@ -125,12 +139,13 @@ row = 1
 for (i in unique(tmp_history$OwnerUserId)) {
   # Create a subset dataframe with all the history from an unique author
   tmp <- subset(tmp_history, OwnerUserId == i)
+  tmp <- tmp %>% arrange(CreationDate)
   # 2. For each answer check how many Edits come before
   # the following answer CreationDate
   post_id <- unique(tmp$Id)
   for (n in seq_along(post_id)) {
     # Store the result in the dataframe
-    if (post_id[[n]] != max(post_id)) {
+    if (post_id[[n]] != tail(post_id, n=1)) {
       EditCount_df[row, 1] <- post_id[[n]]
       EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$EditDate)
       row = row + 1
@@ -169,8 +184,8 @@ for (i in unique(data_str_all$OwnerUserId)) {
   }
 }
 
-# Get the accumulative votes up, down until for all the answers by the author
-# until previously the current answer date
+# Get the cumulative votes up, down and accepted answer for all the answers 
+# by the author before the following answer date
 
 tmp_Votes <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
@@ -182,12 +197,12 @@ tmp_Votes <- merge(tmp_Votes, Votes[, c("PostId", "VoteTypeId", "VoteName",
 # Keep only AcceptedByOriginator, UpMod and DownMod
 tmp_Votes <- subset(tmp_Votes, VoteTypeId %in% c(1, 2, 3))
 
-
 # Date Formatting 
 tmp_Votes$CreationDate <- as.POSIXct(tmp_Votes$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 # Consider votes as they were given at the end of the day
-# Approx: so no future votes are given to answers (avoid reverse causality)
-tmp_Votes$VoteCreationDate <- as.POSIXct(tmp_Votes$VoteCreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC") + 23*60*60 + 59*60 + 59
+# Approx: so no future votes are given to the current answers (avoid reverse causality)
+tmp_Votes$VoteCreationDate <- as.POSIXct(tmp_Votes$VoteCreationDate, 
+                                         format = "%Y-%m-%d %H:%M:%S", tz = "UTC") + 23*60*60 + 59*60 + 59
 
 # Initialize the dataframe and the row count
 VoteCount_df <- data.frame(Id = as.numeric(), 
@@ -200,21 +215,37 @@ row = 1
 # 1. For all the users
 for (i in unique(tmp_Votes$OwnerUserId)) {
   tmp <- subset(tmp_Votes, OwnerUserId == i)
-  # 2. For each answer check how many AcceptedByOriginator, UpMod and DownMod that
-  # come before than the current answer CreationDate
-  for (n in unique(tmp$Id)) {
-    # Store the result in the dataframe
-    VoteCount_df[row, 1] <- n
-    VoteCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate & 
-                                  tmp$VoteTypeId == 1)
-    VoteCount_df[row, 3] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate & 
-                                  tmp$VoteTypeId == 2)
-    VoteCount_df[row, 4] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$VoteCreationDate &
-                                  tmp$VoteTypeId == 3)
-    row = row + 1
+  tmp <- tmp %>% arrange(CreationDate)
+  # 2. For each answer check how many AcceptedByOriginator, UpMod and DownMod 
+  # come before the following answer CreationDate
+  post_id <- unique(tmp$Id)
+  # Store the result in the dataframe
+  for (n in seq_along(post_id)) {
+    # if the post is not the last post from the author
+    if (post_id[[n]] != tail(post_id, n=1)) {
+      VoteCount_df[row, 1] <- post_id[[n]]
+      VoteCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 1)
+      VoteCount_df[row, 3] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 2)
+      VoteCount_df[row, 4] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 3)
+      row = row + 1
+    } else {
+      # Calculate the cumulative count before the end of the study date or censuring date
+      VoteCount_df[row, 1] <- post_id[[n]]
+      VoteCount_df[row, 2] <- sum(unique(data_str_all$EndDate[data_str_all$OwnerUserId == i]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 1)
+      VoteCount_df[row, 3] <- sum(unique(data_str_all$EndDate[data_str_all$OwnerUserId == i]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 2)
+      VoteCount_df[row, 4] <- sum(unique(data_str_all$EndDate[data_str_all$OwnerUserId == i]) > tmp$VoteCreationDate &
+                                    tmp$VoteTypeId == 3)
+      row = row + 1
+    }
   }
 }
 
+    
 rm(i, n, row, tmp, tmp_Votes)
 
 
@@ -277,7 +308,7 @@ for (i in unique(data_str_all$OwnerUserId)) {
 }
 
 
-# Get accumulative comments count before the current answer
+# Get cumulative comments count before the following answer
 tmp_Comments <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
 
@@ -303,15 +334,25 @@ row = 1
 # 1. For all the users
 for (i in unique(tmp_Comments$OwnerUserId)) {
   tmp <- subset(tmp_Comments, OwnerUserId == i)
+  tmp <- tmp %>% arrange(CreationDate)
   # 2. For each answer check how many Comments come before
-  # the current answer CreationDate
-  for (n in unique(tmp$Id)) {
+  # the following answer CreationDate
+  post_id <- unique(tmp$Id)
+  for (n in seq_along(post_id)) {
     # Store the result in the dataframe
-    CommentCount_df[row, 1] <- n
-    CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$CommentCreationDate)
-    row = row + 1
+    if (post_id[[n]] != tail(post_id, n=1)) {
+      # Store the result in the dataframe
+      CommentCount_df[row, 1] <- post_id[[n]]
+      CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n+1]]]) > tmp$CommentCreationDate)
+      row = row + 1
+    } else {
+      CommentCount_df[row, 1] <- post_id[[n]]
+      CommentCount_df[row, 2] <- sum(unique(data_str_all$EndDate[data_str_all$OwnerUserId == i]) > tmp$CommentCreationDate)
+      row = row + 1
+    }
   }
 }
+
 
 rm(tmp, tmp_Comments, i, n, row)
 
