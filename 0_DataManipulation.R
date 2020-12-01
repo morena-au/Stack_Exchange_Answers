@@ -381,76 +381,10 @@ for (i in unique(data_str_all$OwnerUserId)) {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#TODO: truncation is necessary also for PWP-TT (braga2018recurrent) 
-
 # Save the file
 write.csv(data_str_all, "data_str_all.csv", row.names = FALSE)
 
-'We consider data from a study with 11778 contributors in User Experience
-Stack Exchange. The study is designed to evaluate the effect of covariates
-on answering a question again.
-All contributors entered the study once they answered the first question.
-The event of interest is answer recurrence.
-Contributors were censored at the time last visit to the website is
-older than 6 months (https://stackoverflow.blog/2009/02/16/when-is-an-account-abandoned/).
 
-Contributors were followed until 2018-12-31. 
-40% of the contributors had at least one recurrence (Answered at least 2 answers)
-Median number of recurrences is 4, varying from 2 answers given to 919.
-Among those with at least one recurrence, 79% had at most 10 recurrences.
-We truncate the dataset after the tenth event due to the small number of events
-in the later strata.'
-
-length(unique(data_str_all$OwnerUserId))
-user_freq <- count(data_str_all, OwnerUserId)
-recurrence <- subset(user_freq, n >= 2)
-summary(recurrence)
-
-rec3 <- subset(recurrence, n <= 3)
-rec4 <- subset(recurrence, n <= 4)
-rec5 <- subset(recurrence, n <= 5)
-rec6 <- subset(recurrence, n <= 6)
-rec7 <- subset(recurrence, n <= 7)
-rec8 <- subset(recurrence, n <= 8)
-rec9 <- subset(recurrence, n <= 9)
-rec10 <- subset(recurrence, n <= 10)
-summary(rec10)
-
-rm(rec3, rec4, rec5, rec6, rec7, rec8, rec9)
-
-
-# Truncate observations after the tenth event
-data_str_tr <- subset(data_str_all, event <= 10)
-
-# Save the file
-write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
 
 
 
