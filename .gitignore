@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 data/old/*
+data/raw/*
 Answers.Rproj
