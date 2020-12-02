@@ -5,7 +5,7 @@ library(tidyr)
 
 
 # Import file
-setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 d.ux.a.00 <- read.csv(file="./d.ux.a.00.csv", stringsAsFactors=FALSE)
 
 keep <- c("ParentId", "Id", "CreationDate", "OwnerUserId",
@@ -350,6 +350,7 @@ for (i in unique(data_str_all$OwnerUserId)) {
 
 
 # Save the file
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 write.csv(data_str_all, "data_str_all.csv", row.names = FALSE)
 
 
