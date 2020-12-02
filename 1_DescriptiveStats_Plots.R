@@ -50,9 +50,9 @@ p2 <- ggplot(cumulative_answers, aes(x = factor(TotAnswers), y = pct_total)) +
   xlab("Total Answers Given") +
   theme(axis.text.y=element_blank(), 
         axis.text.x=element_text(size=10)) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))
   
-
+# Output image: seq_truncation
 grid.arrange(p1 + geom_vline(xintercept=4.5, colour = "red"), 
              p2 + geom_vline(xintercept=4.5, colour = "red"), ncol=2)
 
