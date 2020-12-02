@@ -66,8 +66,8 @@ data_str_tr <- read.csv("data_str_tr.csv", stringsAsFactors = FALSE)
 
 ## Descriptive statistics
 ## COVARIATES
-- "EditCount"           
-- "AcceptedByOriginator" 
-- "UpMod"                
-- "DownMod"              
-- "CommentCount"
+# - "EditCount"           
+# - "AcceptedByOriginator" 
+# - "UpMod"                
+# - "DownMod"              
+# - "CommentCount"
