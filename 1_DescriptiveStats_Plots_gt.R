@@ -67,10 +67,12 @@ data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
 # DESCRIPTIVE STATS
 ## COVARIATES
 # - "AcceptedByOriginator" 
+
 data_str_tr_gt$event <- factor(data_str_tr_gt$event)
 data_str_tr_gt$status <- factor(data_str_tr_gt$status)
 data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginator)
 data_str_tr_gt$TimeBetweenAnswer <- data_str_tr_gt$tstop - data_str_tr_gt$tstart
+
 # Transform in days
 data_str_tr_gt$TimeBetweenAnswer <- round(data_str_tr_gt$TimeBetweenAnswer/(24*60*60), 3)
 
@@ -93,12 +95,21 @@ ggplot(data_str_tr_gt,
            fill = status)) + 
   geom_bar(position = "stack")
 
-# - "EditCount" 
-# - "UpMod"                
-# - "DownMod"  
-data_str_tr_gt %>%
-  ggplot( aes(x=event, y=DownMod, fill=event)) +
-  #geom_boxplot() +
+Accepted <- data_str_tr_gt %>%
+  group_by(event, status, AcceptedByOriginator)%>%
+  count()
+
+ggplot(Accepted, aes(x = event, y = n))+
+  geom_bar(
+    aes(fill = AcceptedByOriginator), stat = "identity", color = "white",
+    position = position_dodge(0.9)
+  )+
+  facet_wrap(~status)
+
+strata2 <- subset(data_str_tr_gt, event == 2)
+subset(data_str_tr_gt, event == 4) %>%
+  ggplot( aes(x=AcceptedByOriginator, y=TimeBetweenAnswer, fill=AcceptedByOriginator)) +
+  geom_violin() +
   scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
   geom_jitter(color="black", size=0.4, alpha=0.9) +
   theme(
@@ -108,7 +119,42 @@ data_str_tr_gt %>%
   ggtitle("Violin chart") +
   xlab("")
 
+ggplot(subset(data_str_tr_gt, event == 2), 
+       aes(x = AcceptedByOriginator, 
+           fill = status)) + 
+  geom_bar(position = "stack")
+
+# BINGO
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(AcceptedByOriginator) %>%
+  summarise(mean(TimeBetweenAnswer), median(TimeBetweenAnswer))
+
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(AcceptedByOriginator, status) %>%
+  tally()
+
+# - "EditCount" 
+# - "UpMod"  
+
+# - "DownMod"  
+plot(strata2$DownMod, strata2$TimeBetweenAnswer)
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(DownMod) %>%
+  summarise(mean(TimeBetweenAnswer), median(TimeBetweenAnswer))
+
 data_str_tr_gt %>%
+  ggplot( aes(x=status, y=DownMod, fill=status)) +
+  geom_violin() +
+  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("Violin chart") +
+  xlab("")
+
+subset(data_str_tr_gt, event == 2)  %>%
   ggplot( aes(x=status, y=DownMod, fill=status)) +
   geom_violin() +
   scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
@@ -118,6 +164,14 @@ data_str_tr_gt %>%
   ) +
   ggtitle("Violin chart") +
   xlab("")
+
+subset(data_str_tr_gt, event == 3) %>%
+  group_by(status) %>%
+  summarise(mean(DownMod), median(DownMod))
+
+subset(data_str_tr_gt, event == 2) %>%
+  group_by(status) %>%
+  summarise(mean(DownMod), median(DownMod))
 
 # - "CommentCount"
 data_str_tr_gt %>%
