@@ -71,3 +71,5 @@ data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
 # - "UpMod"                
 # - "DownMod"              
 # - "CommentCount"
+
+# TODO Summary of time between consecutive recurrent event (thenmozhi2019survival)
