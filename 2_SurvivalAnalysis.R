@@ -14,3 +14,13 @@ model_pwp_tt_00 = coxph(Surv(tstart, tstop ,status) ~
                           cluster(OwnerUserId) + strata(event), data=data_str_tr, robust = TRUE)
 
 summary(model_pwp_tt_00)
+
+model_pwp_gt_00 = coxph(Surv(tstop - tstart,status) ~
+                          UpMod +
+                          DownMod +
+                          CommentCount +
+                          AcceptedByOriginator +
+                          EditCount +
+                          cluster(OwnerUserId) + strata(event), data=data_str_tr, robust = TRUE)
+
+summary(model_pwp_gt_00)
