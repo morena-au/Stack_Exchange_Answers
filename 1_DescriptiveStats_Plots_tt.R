@@ -4,11 +4,11 @@ require(gridExtra)
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-data_str_all <- read.csv(file="./data_str_all.csv", stringsAsFactors=FALSE)
+data_str_all_tt <- read.csv(file="./data_str_all_tt.csv", stringsAsFactors=FALSE)
 
 # Truncation is necessary also for PWP-TT (braga2018recurrent) 
 
-user_freq <- count(data_str_all, OwnerUserId)
+user_freq <- count(data_str_all_tt, OwnerUserId)
 colnames(user_freq)[2] <- "Count"
 
 # How many people have at least one recurrence?
@@ -25,7 +25,7 @@ colnames(cumulative_answers) <- c("TotAnswers", "Count")
 
 cumulative_answers$sum <- cumsum(cumulative_answers[, 2])
 cumulative_answers$pct_total <- round((cumulative_answers$sum/
-                                         length(unique(data_str_all$OwnerUserId)))*100, 0)
+                                         length(unique(data_str_all_tt$OwnerUserId)))*100, 0)
 
 
 # Simplify the graph taking into account only the users that answers at most 10 questions
@@ -57,12 +57,12 @@ grid.arrange(p1 + geom_vline(xintercept=4.5, colour = "red"),
              p2 + geom_vline(xintercept=4.5, colour = "red"), ncol=2)
 
 # Truncate observations after the tenth event
-data_str_tr <- subset(data_str_all, event <= 4)
+data_str_tr_tt <- subset(data_str_all_tt, event <= 4)
 
 # Save the file
-write.csv(data_str_tr, "data_str_tr.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt.csv", row.names = FALSE)
 
-data_str_tr <- read.csv("data_str_tr.csv", stringsAsFactors = FALSE)
+data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
 
 ## Descriptive statistics
 ## COVARIATES
