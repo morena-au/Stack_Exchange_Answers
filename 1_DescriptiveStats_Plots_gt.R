@@ -35,7 +35,7 @@ cumulative_answers <- subset(cumulative_answers, TotAnswers <= 10)
 p1 <- ggplot(cumulative_answers, aes(x = factor(TotAnswers), y = Count)) +
   geom_bar(stat = "identity", color="black", fill="grey", width = 0.5) +
   geom_text(aes(label=Count), vjust=-1) +
-  ggtitle("Count of contributors per total amount of answers given") +
+  ggtitle("Censured Contributors") +
   ylab("Contributors Count") + 
   xlab("Total Answers Given") +
   theme(axis.text.y=element_blank(), 
@@ -46,7 +46,7 @@ p1 <- ggplot(cumulative_answers, aes(x = factor(TotAnswers), y = Count)) +
 p2 <- ggplot(cumulative_answers, aes(x = factor(TotAnswers), y = pct_total)) +
   geom_bar(stat = "identity", color="black", fill="grey", width = 0.5) +
   geom_text(aes(label=paste0(pct_total, "%")), vjust=-1) +
-  ggtitle("Percentage of contributors per total amount of answers given") +
+  ggtitle("Percentage of Censured Contributors") +
   ylab("Contributors Percentage") + 
   xlab("Total Answers Given") +
   theme(axis.text.y=element_blank(), 
@@ -62,9 +62,11 @@ data_str_tr_gt <- subset(data_str_all_gt, event <= 4)
 
 # Save the file
 write.csv(data_str_tr_gt, "data_str_tr_gt.csv", row.names = FALSE)
-data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
 
 # DESCRIPTIVE STATS
+data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
+table(data_str_tr_gt$status, data_str_tr_gt$event)
+
 ## COVARIATES
 # - "AcceptedByOriginator" 
 
@@ -74,9 +76,20 @@ data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginato
 data_str_tr_gt$TimeBetweenAnswer <- data_str_tr_gt$tstop - data_str_tr_gt$tstart
 
 # Transform in days
-data_str_tr_gt$TimeBetweenAnswer <- round(data_str_tr_gt$TimeBetweenAnswer/(24*60*60), 3)
+data_str_tr_gt$TimeBetweenAnswer <- round(data_str_tr_gt$TimeBetweenAnswer/(24*60*60), 0)
 
-table(data_str_tr_gt$AcceptedByOriginator, data_str_tr_gt$status)
+# BINGO
+summary(data_str_tr_gt$AcceptedByOriginator)
+
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(AcceptedByOriginator)%>%
+  summarise(n(), median(TimeBetweenAnswer),sd(TimeBetweenAnswer))
+
+# Compute paired-sample Wilcoxon test
+
+event <- subset(data_str_tr_gt, event == 4)
+pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, p.adjust.method="none")
+pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, exact = FALSE)
 
 data_str_tr_gt %>%
   ggplot( aes(x=AcceptedByOriginator, y=TimeBetweenAnswer, fill=AcceptedByOriginator)) +
@@ -124,16 +137,16 @@ ggplot(subset(data_str_tr_gt, event == 2),
            fill = status)) + 
   geom_bar(position = "stack")
 
-# BINGO
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(AcceptedByOriginator) %>%
-  summarise(mean(TimeBetweenAnswer), median(TimeBetweenAnswer))
-
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(AcceptedByOriginator, status) %>%
-  tally()
 
 # - "EditCount" 
+data_str_tr_gt %>%
+  group_by(event)%>%
+  summarise(n_distinct(EditCount))
+
+subset(data_str_tr_gt, event == 1) %>%
+  group_by(status)%>%
+  summarise(median(EditCount),sd(EditCount))
+
 # - "UpMod"  
 
 # - "DownMod"  
