@@ -143,13 +143,31 @@ data_str_tr_gt %>%
   group_by(event)%>%
   summarise(n_distinct(EditCount))
 
-subset(data_str_tr_gt, event == 1) %>%
+subset(data_str_tr_gt, event == 4) %>%
   group_by(status)%>%
-  summarise(median(EditCount),sd(EditCount))
+  summarise(mean(EditCount),sd(EditCount))
+
+event <- subset(data_str_tr_gt, event == 4)
+pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none")
+pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE)
 
 # - "UpMod"  
 
-# - "DownMod"  
+# - "DownMod" 
+
+data_str_tr_gt %>%
+  group_by(event)%>%
+  summarise(sum(DownMod))
+
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(status)%>%
+  summarise(mean(DownMod),sd(DownMod))
+
+event <- subset(data_str_tr_gt, event == 4)
+pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none")
+pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE)
+
+
 plot(strata2$DownMod, strata2$TimeBetweenAnswer)
 subset(data_str_tr_gt, event == 4) %>%
   group_by(DownMod) %>%
