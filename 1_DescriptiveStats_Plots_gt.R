@@ -145,13 +145,27 @@ data_str_tr_gt %>%
 
 subset(data_str_tr_gt, event == 4) %>%
   group_by(status)%>%
-  summarise(mean(EditCount),sd(EditCount))
+  summarise(median(EditCount),sd(EditCount))
 
 event <- subset(data_str_tr_gt, event == 4)
 pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none")
 pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE)
 
 # - "UpMod"  
+data_str_tr_gt %>%
+  group_by(event)%>%
+  summarise(sum(UpMod))
+
+subset(data_str_tr_gt, event == 2) %>%
+  group_by(status)%>%
+  summarise(median(UpMod),sd(UpMod))
+
+event <- subset(data_str_tr_gt, event == 2)
+pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none")
+pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE)
+
+ggplot(data = event) + geom_density(aes(x = UpMod, color = status, fill = status), alpha = .2)
+
 
 # - "DownMod" 
 
@@ -161,7 +175,7 @@ data_str_tr_gt %>%
 
 subset(data_str_tr_gt, event == 4) %>%
   group_by(status)%>%
-  summarise(mean(DownMod),sd(DownMod))
+  summarise(median(DownMod),sd(DownMod))
 
 event <- subset(data_str_tr_gt, event == 4)
 pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none")
@@ -205,27 +219,16 @@ subset(data_str_tr_gt, event == 2) %>%
   summarise(mean(DownMod), median(DownMod))
 
 # - "CommentCount"
-data_str_tr_gt %>%
-  ggplot( aes(x=event, y=CommentCount, fill=event)) +
-  #geom_boxplot() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
 
 data_str_tr_gt %>%
-  ggplot( aes(x=status, y=CommentCount, fill=status)) +
-  geom_violin() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
+  group_by(event)%>%
+  summarise(sum(CommentCount))
 
-table(data_str_tr_gt$CommentCount, data_str_tr_gt$status)
+subset(data_str_tr_gt, event == 4) %>%
+  group_by(status)%>%
+  summarise(median(CommentCount),sd(CommentCount))
+
+event <- subset(data_str_tr_gt, event == 4)
+pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none")
+pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE)
+
