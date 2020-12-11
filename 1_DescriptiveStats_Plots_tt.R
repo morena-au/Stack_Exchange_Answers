@@ -1,6 +1,7 @@
 # Descriptive Stats and Plots
 library(ggplot2)
 require(gridExtra)
+library(tidyverse)
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
@@ -62,14 +63,134 @@ data_str_tr_tt <- subset(data_str_all_tt, event <= 4)
 # Save the file
 write.csv(data_str_tr_tt, "data_str_tr_tt.csv", row.names = FALSE)
 
+# DESCRIPTIVE 
 data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
+data_str_tr_tt$event <- factor(data_str_tr_tt$event)
+data_str_tr_tt$status <- factor(data_str_tr_tt$status)
+data_str_tr_tt$TimeBetweenAnswer <- data_str_tr_tt$tstop - data_str_tr_tt$tstart
 
-## Descriptive statistics
+# Transform in days
+data_str_tr_tt$TimeBetweenAnswer <- round(data_str_tr_tt$TimeBetweenAnswer/(24*60*60), 0)
+
+# Base Information
+table(data_str_tr_tt$status, data_str_tr_tt$event)
+
 ## COVARIATES
-# - "EditCount"           
+
 # - "AcceptedByOriginator" 
-# - "UpMod"                
-# - "DownMod"              
+
+# Base Information
+for (i in unique(data_str_tr_tt$event)) {
+  print(subset(data_str_tr_tt, event == i) %>%
+    group_by(AcceptedByOriginator) %>%
+    tally())
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_tt, event == i) %>%
+    group_by(status)%>%
+    summarise(median(AcceptedByOriginator),sd(AcceptedByOriginator)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_tt, event == i)
+  print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# - "EditCount" 
+# Base Information
+for (i in unique(data_str_tr_tt$event)) {
+  print(subset(data_str_tr_tt, event == i) %>%
+          tally(EditCount))
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_tt, event == i) %>%
+          group_by(status)%>%
+          summarise(median(EditCount),sd(EditCount)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_tt, event == i)
+  print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+# - "UpMod"    
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(subset(data_str_tr_tt, event == i) %>%
+          tally(UpMod))
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_tt, event == i) %>%
+          group_by(status)%>%
+          summarise(median(UpMod),sd(UpMod)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_tt, event == i)
+  print(pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+# - "DownMod"   
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(subset(data_str_tr_tt, event == i) %>%
+          tally(DownMod))
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_tt, event == i) %>%
+          group_by(status)%>%
+          summarise(median(DownMod),sd(DownMod)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_tt, event == i)
+  print(pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
+  print("===============================================")
+}
+
 # - "CommentCount"
 
-# TODO Summary of time between consecutive recurrent event (thenmozhi2019survival)
+for (i in unique(data_str_tr_tt$event)) {
+  print(subset(data_str_tr_tt, event == i) %>%
+          tally(CommentCount))
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_tt, event == i) %>%
+          group_by(status)%>%
+          summarise(mean(CommentCount),sd(CommentCount)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_tt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_tt, event == i)
+  print(pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
+  print("===============================================")
+}

@@ -65,11 +65,6 @@ write.csv(data_str_tr_gt, "data_str_tr_gt.csv", row.names = FALSE)
 
 # DESCRIPTIVE STATS
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
-table(data_str_tr_gt$status, data_str_tr_gt$event)
-
-## COVARIATES
-# - "AcceptedByOriginator" 
-
 data_str_tr_gt$event <- factor(data_str_tr_gt$event)
 data_str_tr_gt$status <- factor(data_str_tr_gt$status)
 data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginator)
@@ -78,157 +73,125 @@ data_str_tr_gt$TimeBetweenAnswer <- data_str_tr_gt$tstop - data_str_tr_gt$tstart
 # Transform in days
 data_str_tr_gt$TimeBetweenAnswer <- round(data_str_tr_gt$TimeBetweenAnswer/(24*60*60), 0)
 
-# BINGO
-summary(data_str_tr_gt$AcceptedByOriginator)
+# Base Information
+table(data_str_tr_gt$status, data_str_tr_gt$event)
 
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(AcceptedByOriginator)%>%
-  summarise(n(), median(TimeBetweenAnswer),sd(TimeBetweenAnswer))
+## COVARIATES
+# - "AcceptedByOriginator" 
+
+#Base Information
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(AcceptedByOriginator) %>%
+          tally())
+}
+
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+    group_by(AcceptedByOriginator)%>%
+    summarise(median(TimeBetweenAnswer),sd(TimeBetweenAnswer)))
+}
 
 # Compute paired-sample Wilcoxon test
 
-event <- subset(data_str_tr_gt, event == 4)
-pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, p.adjust.method="none")
-pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, exact = FALSE)
-
-data_str_tr_gt %>%
-  ggplot( aes(x=AcceptedByOriginator, y=TimeBetweenAnswer, fill=AcceptedByOriginator)) +
-  #geom_boxplot() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
-
-ggplot(data_str_tr_gt, 
-       aes(x = AcceptedByOriginator, 
-           fill = status)) + 
-  geom_bar(position = "stack")
-
-Accepted <- data_str_tr_gt %>%
-  group_by(event, status, AcceptedByOriginator)%>%
-  count()
-
-ggplot(Accepted, aes(x = event, y = n))+
-  geom_bar(
-    aes(fill = AcceptedByOriginator), stat = "identity", color = "white",
-    position = position_dodge(0.9)
-  )+
-  facet_wrap(~status)
-
-strata2 <- subset(data_str_tr_gt, event == 2)
-subset(data_str_tr_gt, event == 4) %>%
-  ggplot( aes(x=AcceptedByOriginator, y=TimeBetweenAnswer, fill=AcceptedByOriginator)) +
-  geom_violin() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
-
-ggplot(subset(data_str_tr_gt, event == 2), 
-       aes(x = AcceptedByOriginator, 
-           fill = status)) + 
-  geom_bar(position = "stack")
-
+for (i in unique(data_str_tr_gt$event)) {
+  event <- subset(data_str_tr_gt, event == i)
+  print(paste("Event", i))
+  print(pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, exact = FALSE))
+}
 
 # - "EditCount" 
-data_str_tr_gt %>%
-  group_by(event)%>%
-  summarise(n_distinct(EditCount))
+# Base Information
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          tally(EditCount))
+}
 
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(status)%>%
-  summarise(median(EditCount),sd(EditCount))
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(status)%>%
+          summarise(median(EditCount),sd(EditCount)))
+  print("===============================================")
+}
 
-event <- subset(data_str_tr_gt, event == 4)
-pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none")
-pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE)
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt, event == i)
+  print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
 
 # - "UpMod"  
-data_str_tr_gt %>%
-  group_by(event)%>%
-  summarise(sum(UpMod))
 
-subset(data_str_tr_gt, event == 2) %>%
-  group_by(status)%>%
-  summarise(median(UpMod),sd(UpMod))
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          tally(UpMod))
+}
 
-event <- subset(data_str_tr_gt, event == 2)
-pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none")
-pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE)
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(status)%>%
+          summarise(median(UpMod),sd(UpMod)))
+  print("===============================================")
+}
 
-ggplot(data = event) + geom_density(aes(x = UpMod, color = status, fill = status), alpha = .2)
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt, event == i)
+  print(pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
+  print("===============================================")
+}
 
 
 # - "DownMod" 
 
-data_str_tr_gt %>%
-  group_by(event)%>%
-  summarise(sum(DownMod))
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          tally(DownMod))
+}
 
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(status)%>%
-  summarise(median(DownMod),sd(DownMod))
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(status)%>%
+          summarise(mean(DownMod),sd(DownMod)))
+  print("===============================================")
+}
 
-event <- subset(data_str_tr_gt, event == 4)
-pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none")
-pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE)
-
-
-plot(strata2$DownMod, strata2$TimeBetweenAnswer)
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(DownMod) %>%
-  summarise(mean(TimeBetweenAnswer), median(TimeBetweenAnswer))
-
-data_str_tr_gt %>%
-  ggplot( aes(x=status, y=DownMod, fill=status)) +
-  geom_violin() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
-
-subset(data_str_tr_gt, event == 2)  %>%
-  ggplot( aes(x=status, y=DownMod, fill=status)) +
-  geom_violin() +
-  scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-  theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("Violin chart") +
-  xlab("")
-
-subset(data_str_tr_gt, event == 3) %>%
-  group_by(status) %>%
-  summarise(mean(DownMod), median(DownMod))
-
-subset(data_str_tr_gt, event == 2) %>%
-  group_by(status) %>%
-  summarise(mean(DownMod), median(DownMod))
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt, event == i)
+  print(pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
+  print("===============================================")
+}
 
 # - "CommentCount"
 
-data_str_tr_gt %>%
-  group_by(event)%>%
-  summarise(sum(CommentCount))
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          tally(CommentCount))
+}
 
-subset(data_str_tr_gt, event == 4) %>%
-  group_by(status)%>%
-  summarise(median(CommentCount),sd(CommentCount))
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(status)%>%
+          summarise(mean(CommentCount),sd(CommentCount)))
+  print("===============================================")
+}
 
-event <- subset(data_str_tr_gt, event == 4)
-pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none")
-pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE)
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt, event == i)
+  print(pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none"))
+  print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
 
