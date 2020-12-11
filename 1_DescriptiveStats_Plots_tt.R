@@ -82,8 +82,7 @@ table(data_str_tr_tt$status, data_str_tr_tt$event)
 # Base Information
 for (i in unique(data_str_tr_tt$event)) {
   print(subset(data_str_tr_tt, event == i) %>%
-    group_by(AcceptedByOriginator) %>%
-    tally())
+    tally(AcceptedByOriginator))
 }
 
 for (i in unique(data_str_tr_tt$event)) {
