@@ -85,6 +85,11 @@ for (i in unique(data_str_tr_tt$event)) {
     tally(AcceptedByOriginator))
 }
 
+data_str_tr_tt%>%
+  summarise(round(mean(AcceptedByOriginator), 3), 
+            round(median(AcceptedByOriginator), 3), 
+            round(sd(AcceptedByOriginator), 3))
+
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
@@ -109,6 +114,11 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(EditCount))
 }
 
+data_str_tr_tt%>%
+  summarise(round(mean(EditCount), 3), 
+            round(median(EditCount), 3), 
+            round(sd(EditCount), 3))
+
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
@@ -131,6 +141,11 @@ for (i in unique(data_str_tr_tt$event)) {
   print(subset(data_str_tr_tt, event == i) %>%
           tally(UpMod))
 }
+
+data_str_tr_tt%>%
+  summarise(round(mean(UpMod), 3), 
+            round(median(UpMod), 3), 
+            round(sd(UpMod), 3))
 
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
@@ -155,6 +170,11 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(DownMod))
 }
 
+data_str_tr_tt%>%
+  summarise(round(mean(DownMod), 3), 
+            round(median(DownMod), 3), 
+            round(sd(DownMod), 3))
+
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
@@ -177,6 +197,11 @@ for (i in unique(data_str_tr_tt$event)) {
   print(subset(data_str_tr_tt, event == i) %>%
           tally(CommentCount))
 }
+
+data_str_tr_tt%>%
+  summarise(round(mean(CommentCount), 3), 
+            round(median(CommentCount), 3), 
+            round(sd(CommentCount), 3))
 
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
