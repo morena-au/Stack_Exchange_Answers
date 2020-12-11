@@ -54,9 +54,9 @@ d.ux.a.02 <- merge(d.ux.a.02, UniqueLastAccess[, c("OwnerUserId", "LastAccessDat
 tmp <- d.ux.a.02 %>%
   group_by(OwnerUserId) %>%
   arrange(CreationDate) %>%
-  mutate(tstart = as.numeric(difftime(CreationDate, lag(CreationDate), tz = "UTC"), units = "secs")) %>%
-  mutate(tstop = as.numeric(difftime(lead(CreationDate), CreationDate, tz = "UTC"), units = "secs")) %>%
-  mutate(event = row_number())
+  mutate(tstart = as.numeric(difftime(CreationDate, lag(CreationDate), tz = "UTC"), units = "secs"),
+         tstop = as.numeric(difftime(lead(CreationDate), CreationDate, tz = "UTC"), units = "secs"), 
+         event = row_number())
 
 tmp$status <- ifelse(is.na(tmp$tstop), 0, 1)
 
@@ -101,7 +101,6 @@ PostHistory <- merge(PostHistory, PostHistoryTypes,
 rm(PostHistoryTypes)
 
 # Keep only Edit Body
-PostHistory <- subset(PostHistory, PostHistoryTypeId == 5)
 colnames(PostHistory)[3] <- "EditDate"
 
 tmp_history <- data_str_all %>%
@@ -145,7 +144,8 @@ for (i in unique(tmp_history$OwnerUserId)) {
       EditCount_df[row, 1] <- post_id[[n]]
       EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n]]]) > 
                                     (tmp$EditDate[tmp$Id == post_id[[n-1]]]) & 
-                                    (tmp$UserId[tmp$Id == post_id[[n-1]]] != i))
+                                    (tmp$UserId[tmp$Id == post_id[[n-1]]] != i) &
+                                    (tmp$PostHistoryTypeId[tmp$Id == post_id[[n-1]]] == 5))
       row = row + 1
     }
   }

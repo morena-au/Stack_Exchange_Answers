@@ -102,23 +102,22 @@ keep <- c("PostHistoryTypeId", "PostId", "CreationDate", "UserId")
 PostHistory <- PostHistory[keep]
 PostHistory <- merge(PostHistory, PostHistoryTypes, 
                      by.x = "PostHistoryTypeId", by.y = "Id", all.x = TRUE)
-rm(PostHistoryTypes)
-
-# Keep only Edit Body
-PostHistory <- subset(PostHistory, PostHistoryTypeId == 5)
 colnames(PostHistory)[3] <- "EditDate"
+rm(PostHistoryTypes)
 
 tmp_history <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
 
 tmp_history <- merge(tmp_history, PostHistory, by.x = "Id", by.y = "PostId", all.x = TRUE)
 
-# Remove edits made by the same author
-tmp_history <- subset(tmp_history, OwnerUserId != UserId)
-
 # Date Formatting 
 tmp_history$CreationDate <- as.POSIXct(tmp_history$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 tmp_history$EditDate <- as.POSIXct(tmp_history$EditDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# Assign fictitious data to NA
+tmp_history$UserId[is.na(tmp_history$UserId)] <- -99
+tmp_history$EditDate[is.na(tmp_history$EditDate)] <- as.POSIXct("2100-01-01")
+
 
 # With TT: each answer has the count of all edits made on all the posts
 # wrote by the author by others previous to the current answer
@@ -139,7 +138,8 @@ for (i in unique(tmp_history$OwnerUserId)) {
   for (n in unique(tmp$Id)) {
     # Store the result in the dataframe
     EditCount_df[row, 1] <- n
-    EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$EditDate)
+    EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$EditDate &
+                                  tmp$PostHistoryTypeId == 5 & tmp$UserId != tmp$OwnerUserId)
     row = row + 1
   }
 }
@@ -149,28 +149,6 @@ rm(tmp, tmp_history, i, keep, n, row)
 data_str_all <- merge(data_str_all, EditCount_df, 
                       by = "Id", all.x = TRUE)
 
-# Adjust for missing values
-# if event = 1, EditCount is missing >> 0 no edits on the first answer
-data_str_all$EditCount[data_str_all$event == 1 & is.na(data_str_all$EditCount)] <- 0
-
-data_str_all <- data_str_all %>%
-  arrange(OwnerUserId, event)
-
-# 1. For all the users
-for (i in unique(data_str_all$OwnerUserId)) {
-  # 2. For all the events
-  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
-    # if EditCount is nan copy the value of EditCount from previous event
-    if (is.na(data_str_all[(data_str_all$event == n &
-                            data_str_all$OwnerUserId == i), "EditCount"])) {
-      data_str_all[(data_str_all$event == n &
-                      data_str_all$OwnerUserId == i),
-                   "EditCount"] <- data_str_all[(data_str_all$event == n-1 &
-                                                   data_str_all$OwnerUserId == i), "EditCount"]
-    }
-  }
-}
-
 # Get the cumulative votes up, down and answers accepted by the originator 
 # for all the answers by the author until previous to the current answer date
 
@@ -179,11 +157,8 @@ tmp_Votes <- data_str_all %>%
 
 
 tmp_Votes <- merge(tmp_Votes, Votes[, c("PostId", "VoteTypeId", "VoteName",
-                                        "VoteCreationDate")], by.x = "Id", by.y = "PostId")
-
-# Keep only AcceptedByOriginator, UpMod and DownMod
-tmp_Votes <- subset(tmp_Votes, VoteTypeId %in% c(1, 2, 3))
-
+                                        "VoteCreationDate")], by.x = "Id", 
+                                        by.y = "PostId", all.x = TRUE)
 
 # Date Formatting 
 tmp_Votes$CreationDate <- as.POSIXct(tmp_Votes$CreationDate, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
@@ -191,6 +166,11 @@ tmp_Votes$CreationDate <- as.POSIXct(tmp_Votes$CreationDate, format = "%Y-%m-%d 
 # Approx: so no future votes are given to the current answers (avoid reverse causality)
 tmp_Votes$VoteCreationDate <- as.POSIXct(tmp_Votes$VoteCreationDate, 
                                          format = "%Y-%m-%d %H:%M:%S", tz = "UTC") + 23*60*60 + 59*60 + 59
+
+# Assign fictitious data to NA
+tmp_Votes$VoteTypeId[is.na(tmp_Votes$VoteTypeId)] <- -99
+tmp_Votes$VoteCreationDate[is.na(tmp_Votes$VoteCreationDate)] <- as.POSIXct("2100-01-01")
+
 
 # Initialize the dataframe and the row count
 VoteCount_df <- data.frame(Id = as.numeric(), 
@@ -225,74 +205,23 @@ rm(i, n, row, tmp, tmp_Votes)
 data_str_all <- merge(data_str_all, VoteCount_df, 
                       by = "Id", all.x = TRUE)
 
-# Adjust for missing values
-data_str_all <- data_str_all %>%
-  arrange(OwnerUserId, event)
-
-# if event = 1, AcceptedByOriginator is missing >> no AcceptedByOriginator on the first answer
-data_str_all$AcceptedByOriginator[data_str_all$event == 1 & is.na(data_str_all$AcceptedByOriginator)] <- 0
-# 1. For all the users
-for (i in unique(data_str_all$OwnerUserId)) {
-  # 2. For all the events
-  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
-    # if AcceptedByOriginator is nan copy the value of AcceptedByOriginator from previous event
-    if (is.na(data_str_all[(data_str_all$event == n &
-                            data_str_all$OwnerUserId == i), "AcceptedByOriginator"])) {
-      data_str_all[(data_str_all$event == n &
-                      data_str_all$OwnerUserId == i),
-                   "AcceptedByOriginator"] <- data_str_all[(data_str_all$event == n-1 &
-                                                   data_str_all$OwnerUserId == i), "AcceptedByOriginator"]
-    }
-  }
-}
-
-# if event = 1, UpMod is missing>> no UpMod on the first answer
-data_str_all$UpMod[data_str_all$event == 1 & is.na(data_str_all$UpMod)] <- 0
-# 1. For all the users
-for (i in unique(data_str_all$OwnerUserId)) {
-  # 2. For all the events
-  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
-    # if UpMod is nan copy the value of UpMod from previous event
-    if (is.na(data_str_all[(data_str_all$event == n &
-                            data_str_all$OwnerUserId == i), "UpMod"])) {
-      data_str_all[(data_str_all$event == n &
-                      data_str_all$OwnerUserId == i),
-                   "UpMod"] <- data_str_all[(data_str_all$event == n-1 &
-                                                              data_str_all$OwnerUserId == i), "UpMod"]
-    }
-  }
-}
-
-# if event = 1, DownMod is missing >> no DownMod on the first answer
-data_str_all$DownMod[data_str_all$event == 1 & is.na(data_str_all$DownMod)] <- 0
-# 1. For all the users
-for (i in unique(data_str_all$OwnerUserId)) {
-  # 2. For all the events
-  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
-    # if DownMod is nan copy the value of DownMod from previous event
-    if (is.na(data_str_all[(data_str_all$event == n &
-                            data_str_all$OwnerUserId == i), "DownMod"])) {
-      data_str_all[(data_str_all$event == n &
-                      data_str_all$OwnerUserId == i),
-                   "DownMod"] <- data_str_all[(data_str_all$event == n-1 &
-                                               data_str_all$OwnerUserId == i), "DownMod"]
-    }
-  }
-}
-
 
 # Get cumulative comments count before the current answer
 tmp_Comments <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
 
 tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
-                      by.x = "Id", by.y = "PostId")
+                      by.x = "Id", by.y = "PostId", all.x = TRUE)
 
 # Date Formatting 
 tmp_Comments$CreationDate <- as.POSIXct(tmp_Comments$CreationDate, 
                                         format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 tmp_Comments$CommentCreationDate <- as.POSIXct(tmp_Comments$CommentCreationDate, 
                                                format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+
+# Assign fictitious data to NA
+tmp_Comments$CommentCreationDate[is.na(tmp_Comments$CommentCreationDate)] <- as.POSIXct("2100-01-01")
 
 # With TT: each answer has the count of all comments made on all the posts
 # wrote by the author previous to the current answer
@@ -322,30 +251,6 @@ rm(tmp, tmp_Comments, i, n, row)
 
 data_str_all <- merge(data_str_all, CommentCount_df, 
                       by = "Id", all.x = TRUE)
-
-# Adjust for missing values
-# if event = 1 and CommentsCount is missing >> 0 no comments on the first answer
-data_str_all$CommentCount[data_str_all$event == 1 & is.na(data_str_all$CommentCount)] <- 0
-
-data_str_all <- data_str_all %>%
-  arrange(OwnerUserId, event)
-
-# 1. For all the users
-for (i in unique(data_str_all$OwnerUserId)) {
-  # 2. For all the events
-  for (n in data_str_all[(data_str_all$OwnerUserId == i), "event"]) {
-    # if CommentCount is nan copy the value of CommentCount from previous event
-    if (is.na(data_str_all[(data_str_all$event == n &
-                            data_str_all$OwnerUserId == i), "CommentCount"])) {
-      data_str_all[(data_str_all$event == n &
-                      data_str_all$OwnerUserId == i),
-                   "CommentCount"] <- data_str_all[(data_str_all$event == n-1 &
-                                                   data_str_all$OwnerUserId == i), "CommentCount"]
-    }
-  }
-}
-
-
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 write.csv(data_str_all, "data_str_all_tt.csv", row.names = FALSE)
