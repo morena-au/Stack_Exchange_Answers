@@ -108,6 +108,11 @@ for (i in unique(data_str_tr_gt$event)) {
           tally(EditCount))
 }
 
+data_str_tr_gt%>%
+  summarise(round(mean(EditCount), 3), 
+            round(median(EditCount), 3), 
+            round(sd(EditCount), 3))
+
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
@@ -130,6 +135,11 @@ for (i in unique(data_str_tr_gt$event)) {
   print(subset(data_str_tr_gt, event == i) %>%
           tally(UpMod))
 }
+
+data_str_tr_gt%>%
+  summarise(round(mean(UpMod), 3), 
+            round(median(UpMod), 3), 
+            round(sd(UpMod), 3))
 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
@@ -155,6 +165,11 @@ for (i in unique(data_str_tr_gt$event)) {
           tally(DownMod))
 }
 
+data_str_tr_gt%>%
+  summarise(round(mean(DownMod), 3), 
+            round(median(DownMod), 3), 
+            round(sd(DownMod), 3))
+
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
@@ -177,6 +192,12 @@ for (i in unique(data_str_tr_gt$event)) {
   print(subset(data_str_tr_gt, event == i) %>%
           tally(CommentCount))
 }
+
+data_str_tr_gt%>%
+  summarise(round(mean(CommentCount), 3), 
+            round(median(CommentCount), 3), 
+            round(sd(CommentCount), 3))
+
 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
