@@ -54,7 +54,7 @@ model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
 
 summary(model_pwp_gt_00)
 
-model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
+model_pwp_gt_01 = coxph(Surv(tstop-tstart,status) ~
                           AcceptedByOriginator + # increase time to the next answer
                           EditCount +
                           UpMod +
@@ -62,4 +62,4 @@ model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           CommentCount + # increase censuring
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt, robust = TRUE)
 
-summary(model_pwp_gt_00)
+summary(model_pwp_gt_01)

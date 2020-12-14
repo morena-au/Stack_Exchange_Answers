@@ -14,7 +14,7 @@ colnames(user_freq)[2] <- "Count"
 
 # How many people have at least one recurrence?
 user_recurrence_2 <- subset(user_freq, Count > 1)
-(4991/11778)*100 #42%
+(nrow(user_recurrence_2)/nrow(user_freq))*100
 
 # Mean number of recurrence
 user_freq$recurrence <- user_freq$Count - 1
@@ -63,7 +63,8 @@ data_str_tr_gt <- subset(data_str_all_gt, event <= 4)
 # Save the file
 write.csv(data_str_tr_gt, "data_str_tr_gt.csv", row.names = FALSE)
 
-# DESCRIPTIVE STATS
+# TODO DESCRIPTIVE STATS
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
 data_str_tr_gt$event <- factor(data_str_tr_gt$event)
 data_str_tr_gt$status <- factor(data_str_tr_gt$status)
@@ -78,6 +79,7 @@ table(data_str_tr_gt$status, data_str_tr_gt$event)
 
 ## COVARIATES
 # - "AcceptedByOriginator" 
+summary(data_str_tr_gt$AcceptedByOriginator)
 
 #Base Information
 for (i in unique(data_str_tr_gt$event)) {

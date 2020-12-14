@@ -91,7 +91,28 @@ rm(tmp)
 
 ## ADD FURTHER VARIABLES
 
-# TODO Remove unregistered participants
+data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
+                                                     "creation_date", "user_type", "user_id")], 
+                     by.x = "OwnerUserId", by.y = "user_id", all.x = TRUE)
+
+# # Amount of answers given by each user type
+# data_str_all %>%
+#   group_by(user_type) %>%
+#   tally()
+
+# Remove unregistered participants
+data_str_all <- subset(data_str_all, user_type == "registered")
+
+data_str_all$creation_date <- as.POSIXct(data_str_all$creation_date, 
+                                         origin="1970-01-01",
+                                         tz='UTC')
+# delete column
+data_str_all$user_type <- NULL
+
+# Remove for employees
+data_str_all <- subset(data_str_all, is_employee != "True")
+data_str_all$is_employee <- NULL
+
 
 # Consider all the changes the answer went through before the next post
 PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
@@ -286,6 +307,9 @@ data_str_all <- merge(data_str_all, CommentCount_df,
 # TODO Control for time fix effect
 # YEAR
 # day of the week
+
+# TODO get community info 
+
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")

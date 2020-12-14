@@ -14,7 +14,7 @@ colnames(user_freq)[2] <- "Count"
 
 # How many people have at least one recurrence?
 user_recurrence_2 <- subset(user_freq, Count > 1)
-(4991/11778)*100 #42%
+(nrow(user_recurrence_2)/nrow(user_freq))*100
 
 # Mean number of recurrence
 user_freq$recurrence <- user_freq$Count - 1

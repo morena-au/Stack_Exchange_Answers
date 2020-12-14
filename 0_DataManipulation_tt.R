@@ -15,6 +15,7 @@ d.ux.a.01 <- d.ux.a.00[keep]
 
 # Get User Info
 Users <- read.csv(file="./Users.csv",stringsAsFactors=FALSE)
+UsersAccount <- read.csv(file="./users_info.csv",stringsAsFactors=FALSE)
 
 # Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
@@ -90,6 +91,28 @@ data_str_all <- data.frame(tmp)
 rm(tmp)
 
 ## ADD FURTHER VARIABLES
+data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
+                                                     "creation_date", "user_type", "user_id")], 
+                      by.x = "OwnerUserId", by.y = "user_id", all.x = TRUE)
+
+# # Amount of answers given by each user type
+# data_str_all %>%
+#   group_by(user_type) %>%
+#   tally()
+
+# Remove unregistered participants
+data_str_all <- subset(data_str_all, user_type == "registered")
+
+data_str_all$creation_date <- as.POSIXct(data_str_all$creation_date,
+                                         origin="1970-01-01",
+                                         tz='UTC')
+# delete column
+data_str_all$user_type <- NULL
+
+# Remove for employees
+data_str_all <- subset(data_str_all, is_employee != "True")
+data_str_all$is_employee <- NULL
+
 # Add one secs to tstop where tstart and tstop are equal (TT)
 data_str_all$tstop <- ifelse(data_str_all$tstart == data_str_all$tstop, 
                              data_str_all$tstop + 1, data_str_all$tstop)
