@@ -15,6 +15,7 @@ d.ux.a.01 <- d.ux.a.00[keep]
 
 # Get User Info
 Users <- read.csv(file="./Users.csv",stringsAsFactors=FALSE)
+UsersAccount <- read.csv(file="./users_info.csv",stringsAsFactors=FALSE)
 
 # Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
@@ -89,6 +90,8 @@ data_str_all <- data.frame(tmp)
 rm(tmp)
 
 ## ADD FURTHER VARIABLES
+
+# TODO Remove unregistered participants
 
 # Consider all the changes the answer went through before the next post
 PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
@@ -279,6 +282,10 @@ rm(tmp, tmp_Comments, i, n, row)
 
 data_str_all <- merge(data_str_all, CommentCount_df, 
                       by = "Id", all.x = TRUE)
+
+# TODO Control for time fix effect
+# YEAR
+# day of the week
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
