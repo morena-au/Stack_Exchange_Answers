@@ -3,7 +3,6 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 
-
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 d.ux.a.00 <- read.csv(file="./d.ux.a.00.csv", stringsAsFactors=FALSE)
@@ -274,6 +273,47 @@ rm(tmp, tmp_Comments, i, n, row)
 
 data_str_all <- merge(data_str_all, CommentCount_df, 
                       by = "Id", all.x = TRUE)
+
+## Get Community info
+# Import file
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
+communities_info <- read.csv(file="./communities_info.csv", stringsAsFactors = FALSE)
+
+keep <- c("launch_date", "open_beta_date", "site_state", "audience", "site_url", "closed_beta_date")
+communities_info <- communities_info[keep]
+
+
+communities_info$launch_date <- as.POSIXct(communities_info$launch_date,
+                            origin="1970-01-01",
+                            tz='UTC')
+
+communities_info$open_beta_date <- as.POSIXct(communities_info$open_beta_date,
+                                           origin="1970-01-01",
+                                           tz='UTC')
+
+communities_info$closed_beta_date <- as.POSIXct(communities_info$closed_beta_date,
+                                              origin="1970-01-01",
+                                              tz='UTC')
+
+communities_info$launch_date <- as.POSIXct(communities_info$launch_date,
+                                                origin="1970-01-01",
+                                                tz='UTC')
+
+communities_info <- subset(communities_info, site_state == "normal")
+
+community_info <- subset(communities_info, site_url == "https://ux.stackexchange.com")
+
+
+# Get participants who answer for the first time after the official launch
+before_launch_tmp <- data_str_all[data_str_all$CreationDate < community_info$launch_date, ]
+data_str_all <- subset(data_str_all, !(OwnerUserId %in% before_launch_tmp$OwnerUserId))
+
+# TODO Control for time fix effect
+# YEAR
+# day of the week
+#$year <- factor(data_str_all$year)
+
+
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 write.csv(data_str_all, "data_str_all_tt.csv", row.names = FALSE)

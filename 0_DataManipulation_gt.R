@@ -304,11 +304,21 @@ rm(tmp, tmp_Comments, i, n, row)
 data_str_all <- merge(data_str_all, CommentCount_df, 
                       by = "Id", all.x = TRUE)
 
+# Get community info
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
+communities_info <- read.csv(file="./communities_info.csv", stringsAsFactors = FALSE)
+communities_info$launch_date <- as.POSIXct(communities_info$launch_date,
+                                           origin="1970-01-01",
+                                           tz='UTC')
+community_info <- subset(communities_info, site_url == "https://ux.stackexchange.com")
+
+# Get participants who answer for the first time after the official launch
+before_launch_tmp <- data_str_all[data_str_all$CreationDate < community_info$launch_date, ]
+data_str_all <- subset(data_str_all, !(OwnerUserId %in% before_launch_tmp$OwnerUserId))
+
 # TODO Control for time fix effect
 # YEAR
 # day of the week
-
-# TODO get community info 
 
 
 # Save the file
