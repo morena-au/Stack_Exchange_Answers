@@ -308,10 +308,8 @@ community_info <- subset(communities_info, site_url == "https://ux.stackexchange
 before_launch_tmp <- data_str_all[data_str_all$CreationDate < community_info$launch_date, ]
 data_str_all <- subset(data_str_all, !(OwnerUserId %in% before_launch_tmp$OwnerUserId))
 
-# TODO Control for time fix effect
-# YEAR
-# day of the week
-#$year <- factor(data_str_all$year)
+data_str_all$year <- substring(data_str_all$CreationDate, 1, 4)
+data_str_all$day <- weekdays(as.Date(data_str_all$CreationDate))
 
 
 # Save the file

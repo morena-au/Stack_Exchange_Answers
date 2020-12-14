@@ -6,6 +6,13 @@ setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE) 
 
+data_str_tr_gt$year <- factor(data_str_tr_gt$year)
+data_str_tr_gt$day <- factor(data_str_tr_gt$day)
+
+data_str_tr_tt$year <- factor(data_str_tr_tt$year)
+data_str_tr_tt$day <- factor(data_str_tr_tt$day)
+
+
 # Prentice, Williams and Peterson  Total Time
 model_pwp_tt_00 = coxph(Surv(tstart, tstop, status) ~
                           UpMod + # Reduce time between answers > general motivate to participate more
@@ -39,6 +46,8 @@ model_pwp_tt_03 = coxph(Surv(tstart, tstop, status) ~
                           UpMod + # Reduce time between answers > general motivate to participate more
                           DownMod +
                           CommentCount + # Reduce time between answers > general motivate to participate more
+                          year +
+                          day +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_tt, robust = TRUE)
 
 summary(model_pwp_tt_03)
@@ -60,6 +69,8 @@ model_pwp_gt_01 = coxph(Surv(tstop-tstart,status) ~
                           UpMod +
                           DownMod + # increase censuring especially in the 2nd, 3rd answer
                           CommentCount + # increase censuring
+                          year +
+                          day +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt, robust = TRUE)
 
 summary(model_pwp_gt_01)
