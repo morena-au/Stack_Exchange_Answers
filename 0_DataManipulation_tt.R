@@ -311,6 +311,39 @@ data_str_all <- subset(data_str_all, !(OwnerUserId %in% before_launch_tmp$OwnerU
 data_str_all$year <- substring(data_str_all$CreationDate, 1, 4)
 data_str_all$day <- weekdays(as.Date(data_str_all$CreationDate))
 
+# Control for attitude and intentions > which community joined first
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
+AssociatedInfo <- read.csv("users_associated_info.csv", stringsAsFactors = FALSE)
+
+# Remove duplicate
+AssociatedInfo <- data.frame(AssociatedInfo[!duplicated(AssociatedInfo), ])
+
+AssociatedInfo$creation_date <- as.POSIXct(AssociatedInfo$creation_date,
+                                           origin="1970-01-01",
+                                           tz='UTC')
+# check for missing values
+tmp <- subset(data_str_all, !(data_str_all$AccountId %in% AssociatedInfo$account_id))
+unique(tmp$OwnerUserId)
+
+# remove users 52638 53220 > do not participate in any communities
+data_str_all <- subset(data_str_all, !(OwnerUserId %in% c(52638, 53220)))
+
+data_str_all$AccountId <- ifelse(is.na(data_str_all$AccountId), 3941049, 
+                                 data_str_all$AccountId)
+
+Associated_tmp <- AssociatedInfo %>%
+  group_by(account_id) %>%
+  arrange(creation_date) %>%
+  filter(row_number() == 1)
+
+# Merge them together
+data_str_all <- merge(data_str_all, Associated_tmp[, c("account_id", "site_name")], 
+                      by.x = "AccountId", by.y = "account_id", all.x = TRUE)
+
+unique(data_str_all$site_name)
+
+data_str_all$start_UX <- ifelse(data_str_all$site_name == "User Experience Stack Exchange", 1, 0)
+
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
