@@ -8,7 +8,7 @@ import time
 import os
 import re
 
-os.chdir("C:/Projects/Stack_Exchange/motivation_feedback/data/Answers/data")
+os.chdir("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 urls = pd.read_csv("users_urls_api.csv")
 
 class UsersSpider(scrapy.Spider):
@@ -29,7 +29,7 @@ class UsersSpider(scrapy.Spider):
         users_info = pd.DataFrame.from_dict(results["items"]) 
 
         # Check if there is a file named users_info.csv in the working directory
-        os.chdir("C:/Users/au517585/Desktop/Projects/Stack_Exchange/motivation_feedback/data/Answers")
+        os.chdir("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 
         if os.path.isfile('users_info.csv'):
             # Load the existing csv file

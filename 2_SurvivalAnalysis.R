@@ -56,6 +56,8 @@ summary(model_pwp_tt_03)
 # Prentice, Williams and Peterson Gap Time 
 
 data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginator)
+data_str_tr_gt$start_UX <- factor(data_str_tr_gt$start_UX)
+data_str_tr_gt$year <- factor(data_str_tr_gt$year)
 model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           UpMod +
                           DownMod + # increase censuring especially in the 2nd, 3rd answer
@@ -71,6 +73,7 @@ model_pwp_gt_01 = coxph(Surv(tstop-tstart,status) ~
                           CommentCount + # increase censuring
                           year +
                           day +
+                          start_UX +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt, robust = TRUE)
 
 summary(model_pwp_gt_01)
