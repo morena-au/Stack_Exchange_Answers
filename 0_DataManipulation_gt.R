@@ -3,7 +3,6 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 
-
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 d.ux.a.00 <- read.csv(file="./d.ux.a.00.csv", stringsAsFactors=FALSE)
@@ -16,6 +15,10 @@ d.ux.a.01 <- d.ux.a.00[keep]
 # Get User Info
 Users <- read.csv(file="./Users.csv",stringsAsFactors=FALSE)
 UsersAccount <- read.csv(file="./users_info.csv",stringsAsFactors=FALSE)
+
+UsersAccount$creation_date <- as.POSIXct(UsersAccount$creation_date, 
+                                         origin="1970-01-01",
+                                         tz='UTC')
 
 # Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
@@ -91,8 +94,7 @@ rm(tmp)
 
 ## ADD FURTHER VARIABLES
 
-data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
-                                                     "creation_date", "user_type", "user_id")], 
+data_str_all <- merge(data_str_all, UsersAccount[, c("user_id", "is_employee","user_type", "creation_date")], 
                      by.x = "OwnerUserId", by.y = "user_id", all.x = TRUE)
 
 # # Amount of answers given by each user type
@@ -100,12 +102,11 @@ data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
 #   group_by(user_type) %>%
 #   tally()
 
+colnames(data_str_all)[which(names(data_str_all) == "creation_date")] <- "UX_registration"
+
 # Remove unregistered participants
 data_str_all <- subset(data_str_all, user_type == "registered")
 
-data_str_all$creation_date <- as.POSIXct(data_str_all$creation_date, 
-                                         origin="1970-01-01",
-                                         tz='UTC')
 # delete column
 data_str_all$user_type <- NULL
 
@@ -347,16 +348,68 @@ Associated_tmp <- AssociatedInfo %>%
   filter(row_number() == 1)
 
 # Merge them together
-data_str_all <- merge(data_str_all, Associated_tmp[, c("account_id", "site_name")], 
+data_str_all <- merge(data_str_all, Associated_tmp[, c("account_id", "site_name", "creation_date")],
                    by.x = "AccountId", by.y = "account_id", all.x = TRUE)
+
+colnames(data_str_all)[which(names(data_str_all) == "creation_date")] <- "SE_registration"
 
 unique(data_str_all$site_name)
 
-data_str_all$start_UX <- ifelse(data_str_all$site_name == "User Experience Stack Exchange", 1, 0)
+# Possible database errors:
+# if the registration in UX in Users was done before the oldest registration in AssociatedInfo
+# keep UX registration as starting point. 
+
+data_str_all$start_UX <- ifelse(data_str_all$UX_registration <= data_str_all$SE_registration, 1, 0)
+data_str_all$site_name <- NULL
+data_str_all$start_tenure <- ifelse(data_str_all$UX_registration <= data_str_all$SE_registration, 
+                                 data_str_all$UX_registration,
+                                 data_str_all$SE_registration)
+
+data_str_all$start_tenure <- as.POSIXct(data_str_all$start_tenure,
+                                     origin="1970-01-01",
+                                     tz='UTC')
+
+data_str_all$tenure<- substring(data_str_all$start_tenure, 1, 4)
+data_str_all$tenure<- as.numeric(data_str_all$tenure)
 
 # Import question
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
 d.ux.q.00 <- read.csv(file="./d.ux.q.00.csv", stringsAsFactors=FALSE)
+
+keep <- c("Id", "CreationDate", "OwnerUserId", "Tags")
+d.ux.q.00 <- d.ux.q.00[keep]
+colnames(d.ux.q.00)[2] <- "QuestionCreationDate"
+colnames(d.ux.q.00)[3] <- "QuestionUserId"
+
+tags_tmp <- data.frame(Id = d.ux.q.00$Id, str_split(d.ux.q.00$Tags, "><", simplify = TRUE))
+tags_tmp <- data.frame(tags_tmp[1], apply(tags_tmp[2:6], 2, function(x) gsub("[<>]",'',x)))
+
+# question based on the first tag (same domain, exposure, most important)
+tags_tmp <- tags_tmp[,1:2]
+colnames(tags_tmp)[2] <- "QuestionTag"
+
+# Merge them together
+data_str_all <- merge(data_str_all, tags_tmp, 
+                   by.x = "ParentId", by.y = "Id", all.x = TRUE)
+
+# # keep all and order the tab alphabetically
+# # Initialize the dataframe and the row count
+# sorted_tags  <- data.frame(Id = as.numeric(), 
+#                                 Tags = as.character(),
+#                                 stringsAsFactors=FALSE) 
+# row = 1
+# 
+# require(stringr)
+# # 1. For all the row
+# for (i in c(1:dim(tags_tmp)[1])) {
+#   sorted_tags[row, 1] <- tags_tmp$Id[i]
+#   sorted_tags[row, 2] <- str_trim(paste(sort(t(tags_tmp[i,2:6])), collapse = " "))
+#   row = row + 1
+# }
+# 
+# rm(keep, i, row)
+
+# TODO randomly match question based on the same tag
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
