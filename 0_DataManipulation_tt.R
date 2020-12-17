@@ -16,6 +16,10 @@ d.ux.a.01 <- d.ux.a.00[keep]
 Users <- read.csv(file="./Users.csv",stringsAsFactors=FALSE)
 UsersAccount <- read.csv(file="./users_info.csv",stringsAsFactors=FALSE)
 
+UsersAccount$creation_date <- as.POSIXct(UsersAccount$creation_date, 
+                                         origin="1970-01-01",
+                                         tz='UTC')
+
 # Merge them together
 d.ux.a.01 <- merge(d.ux.a.01, Users[, c("Id", "LastAccessDate", "AccountId")], 
                    by.x = "OwnerUserId", by.y = "Id", all.x = TRUE)
@@ -90,8 +94,8 @@ data_str_all <- data.frame(tmp)
 rm(tmp)
 
 ## ADD FURTHER VARIABLES
-data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
-                                                     "creation_date", "user_type", "user_id")], 
+data_str_all <- merge(data_str_all, UsersAccount[, c("user_id", "is_employee", "user_type",
+                                                     "creation_date")], 
                       by.x = "OwnerUserId", by.y = "user_id", all.x = TRUE)
 
 # # Amount of answers given by each user type
@@ -99,12 +103,11 @@ data_str_all <- merge(data_str_all, UsersAccount[, c("is_employee",
 #   group_by(user_type) %>%
 #   tally()
 
+colnames(data_str_all)[which(names(data_str_all) == "creation_date")] <- "UX_registration"
+
 # Remove unregistered participants
 data_str_all <- subset(data_str_all, user_type == "registered")
 
-data_str_all$creation_date <- as.POSIXct(data_str_all$creation_date,
-                                         origin="1970-01-01",
-                                         tz='UTC')
 # delete column
 data_str_all$user_type <- NULL
 
@@ -232,7 +235,7 @@ data_str_all <- merge(data_str_all, VoteCount_df,
 tmp_Comments <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
 
-tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
+tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate", "CommentUserId")], 
                       by.x = "Id", by.y = "PostId", all.x = TRUE)
 
 # Date Formatting 
@@ -244,6 +247,7 @@ tmp_Comments$CommentCreationDate <- as.POSIXct(tmp_Comments$CommentCreationDate,
 
 # Assign fictitious data to NA
 tmp_Comments$CommentCreationDate[is.na(tmp_Comments$CommentCreationDate)] <- as.POSIXct("2100-01-01")
+tmp_Comments$CommentUserId[is.na(tmp_Comments$CommentUserId)] <- -99
 
 # With TT: each answer has the count of all comments made on all the posts
 # wrote by the author previous to the current answer
@@ -264,7 +268,8 @@ for (i in unique(tmp_Comments$OwnerUserId)) {
   for (n in unique(tmp$Id)) {
     # Store the result in the dataframe
     CommentCount_df[row, 1] <- n
-    CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$CommentCreationDate)
+    CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$CommentCreationDate &
+                                   tmp$CommentUserId != tmp$OwnerUserId)
     row = row + 1
   }
 }
@@ -337,13 +342,50 @@ Associated_tmp <- AssociatedInfo %>%
   filter(row_number() == 1)
 
 # Merge them together
-data_str_all <- merge(data_str_all, Associated_tmp[, c("account_id", "site_name")], 
+data_str_all <- merge(data_str_all, Associated_tmp[, c("account_id", "site_name", "creation_date")], 
                       by.x = "AccountId", by.y = "account_id", all.x = TRUE)
 
-unique(data_str_all$site_name)
+colnames(data_str_all)[which(names(data_str_all) == "creation_date")] <- "SE_registration"
 
-data_str_all$start_UX <- ifelse(data_str_all$site_name == "User Experience Stack Exchange", 1, 0)
+# unique(data_str_all$site_name)
 
+# Possible database errors:
+# if the registration in UX in Users was done before the oldest registration in AssociatedInfo
+# keep UX registration as starting point. 
+
+data_str_all$start_UX <- ifelse(data_str_all$UX_registration <= data_str_all$SE_registration, 1, 0)
+data_str_all$site_name <- NULL
+data_str_all$start_tenure <- ifelse(data_str_all$UX_registration <= data_str_all$SE_registration, 
+                                    data_str_all$UX_registration,
+                                    data_str_all$SE_registration)
+
+data_str_all$start_tenure <- as.POSIXct(data_str_all$start_tenure,
+                                        origin="1970-01-01",
+                                        tz='UTC')
+
+data_str_all$tenure<- substring(data_str_all$start_tenure, 1, 4)
+data_str_all$tenure<- as.numeric(data_str_all$tenure)
+
+# Import Tags
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
+Tags <- read.csv(file="Tags.csv",stringsAsFactors=FALSE)
+TagsTable <- read.csv(file="TagsTable.csv",stringsAsFactors=FALSE)
+
+Tags <- merge(Tags, TagsTable[, c("Id", "TagName", "Count")], 
+                      by.x = "TagId", by.y = "Id", all.x = TRUE)
+
+# For each question get the tag most frequently used
+Tags <- Tags %>%
+  group_by(PostId) %>%
+  arrange(Count) %>%
+  filter(row_number()==n())
+
+# Merge them together
+data_str_all <- merge(data_str_all, Tags[, c("PostId", "TagName", "Count")], 
+                      by.x = "ParentId", by.y = "PostId", all.x = TRUE)
+
+
+colnames(data_str_all)[which(names(data_str_all) == "Count")] <- "TagFreq"
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")

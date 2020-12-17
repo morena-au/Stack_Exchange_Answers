@@ -14,6 +14,7 @@ data_str_tr_gt$QuestionTag <- factor(data_str_tr_gt$QuestionTag)
 data_str_tr_tt$year <- factor(data_str_tr_tt$year)
 data_str_tr_tt$day <- factor(data_str_tr_tt$day)
 data_str_tr_tt$start_UX <- factor(data_str_tr_tt$start_UX)
+data_str_tr_tt$TagName <- factor(data_str_tr_tt$TagName)
 
 # Prentice, Williams and Peterson  Total Time
 model_pwp_tt_00 = coxph(Surv(tstart, tstop, status) ~
@@ -42,15 +43,31 @@ model_pwp_tt_02 = coxph(Surv(tstart, tstop, status) ~
 summary(model_pwp_tt_02)
 
 # Prentice, Williams and Peterson  Total Time
+# Check for tags convergence: tag with all censured or 
+cens_tags <- as.data.frame.matrix(table(data_str_tr_tt$TagName, data_str_tr_tt$status))
+cens_tags_NoInfo <- subset(cens_tags, !(`0` != 0 & `1` != 0))
+cens_tags_NoInfo <- setDT(cens_tags_NoInfo, keep.rownames = TRUE)[]
+setnames(cens_tags_NoInfo, 1, "TagName")
+
+cens_tags_NoInfo <- merge(cens_tags_NoInfo, data_str_tr_tt[, c("TagName", "TagFreq")], 
+                      by.x = "TagName", by.y = "TagName", all.x = TRUE)
+
+# Delete the users with at least one answer with a non informative tag
+# Delete the answers with that question and the users
+NoInfoUsers <- subset(data_str_tr_tt, TagName %in% cens_tags_NoInfo[['TagName']])
+data_str_tr_tt <- subset(data_str_tr_tt, !(OwnerUserId %in% unique(NoInfoUsers$OwnerUserId)))
+
 model_pwp_tt_03 = coxph(Surv(tstart, tstop, status) ~
                           AcceptedByOriginator +
                           EditCount + # Reduce time between answers > general motivate to participate more
                           UpMod + # Reduce time between answers > general motivate to participate more
                           DownMod +
                           CommentCount + # Reduce time between answers > general motivate to participate more
+                          tenure +
                           year +
                           day +
                           start_UX +
+                          TagName + 
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_tt, robust = TRUE)
 
 summary(model_pwp_tt_03)
