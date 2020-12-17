@@ -61,7 +61,7 @@ Badges <- rbind(QueryBadges_01, QueryBadges_02, QueryBadges_03, QueryBadges_04)
 rm(QueryBadges_01, QueryBadges_02, QueryBadges_03, QueryBadges_04)
 
 
-write.csv(Users, "./raw/Badges.csv", row.names = FALSE)
+write.csv(Badges, "./raw/Badges.csv", row.names = FALSE)
 
 
 

@@ -387,6 +387,9 @@ data_str_all <- merge(data_str_all, Tags[, c("PostId", "TagName", "Count")],
 
 colnames(data_str_all)[which(names(data_str_all) == "Count")] <- "TagFreq"
 
+# Add badges information
+Badges <- read.csv(file="./raw/Badges.csv",stringsAsFactors=FALSE)
+
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 write.csv(data_str_all, "data_str_all_tt.csv", row.names = FALSE)
