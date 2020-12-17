@@ -51,8 +51,17 @@ rm(QueryUsers01, QueryUsers02, QueryUsers03, QueryUsers04)
 write.csv(Users, "Users.csv", row.names = FALSE)
 
 
+## Merge Badges together and save them in one file
+QueryBadges_01 <- read.csv(file="./old/Badges/QueryBadges_01.csv",stringsAsFactors=FALSE)
+QueryBadges_02 <- read.csv(file="./old/Badges/QueryBadges_02.csv",stringsAsFactors=FALSE)
+QueryBadges_03 <- read.csv(file="./old/Badges/QueryBadges_03.csv",stringsAsFactors=FALSE)
+QueryBadges_04 <- read.csv(file="./old/Badges/QueryBadges_04.csv",stringsAsFactors=FALSE)
+
+Badges <- rbind(QueryBadges_01, QueryBadges_02, QueryBadges_03, QueryBadges_04)
+rm(QueryBadges_01, QueryBadges_02, QueryBadges_03, QueryBadges_04)
 
 
+write.csv(Users, "./raw/Badges.csv", row.names = FALSE)
 
 
 
