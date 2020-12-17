@@ -256,7 +256,7 @@ data_str_all <- merge(data_str_all, VoteCount_df,
 tmp_Comments <- data_str_all %>%
   select(c("OwnerUserId", "Id", "CreationDate"))
 
-tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate")], 
+tmp_Comments <- merge(tmp_Comments, Comments[, c("PostId", "CommentCreationDate", "CommentUserId")], 
                       by.x = "Id", by.y = "PostId", all.x = TRUE)
 
 # Date Formatting 
@@ -267,6 +267,7 @@ tmp_Comments$CommentCreationDate <- as.POSIXct(tmp_Comments$CommentCreationDate,
 
 # Add fictitious VoteCreationDate for NA
 tmp_Comments$CommentCreationDate[is.na(tmp_Comments$CommentCreationDate)] <- as.POSIXct("2100-01-01")
+tmp_Comments$CommentUserId[is.na(tmp_Comments$CommentUserId)] <- -99
 
 # With GT: each answer has the count of all comments made 
 # on the previous answer
@@ -282,22 +283,28 @@ for (i in unique(tmp_Comments$OwnerUserId)) {
   tmp <- subset(tmp_Comments, OwnerUserId == i)
   tmp <- tmp %>% arrange(CreationDate)
   post_id <- unique(tmp$Id)
+  #print(paste0("OwnerUserId: ", i))
   # 2. For each answer check how many Comments are made on the 
   # previous answer before the current answer CreationDate
   for (n in seq_along(post_id)) {
     # if this is the first post no Comments to count
     if (post_id[[n]] == head(post_id, n=1)) {
+      #print(paste0("First post: ", post_id[[n]]))
       CommentCount_df[row, 1] <- post_id[[n]]
       CommentCount_df[row, 2] <- 0
       row = row + 1
     } else {
+      #print(paste0("Post: ", post_id[[n]]))
       # Store the result in the dataframe
       CommentCount_df[row, 1] <- post_id[[n]]
       CommentCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n]]]) > 
-                                       tmp$CommentCreationDate[tmp$Id == post_id[[n-1]]])
+                                       (tmp$CommentCreationDate[tmp$Id == post_id[[n-1]]]) &
+                                       # filter for comments only for the other users
+                                       (tmp$CommentUserId[tmp$Id == post_id[[n-1]]] != i))
       row = row + 1
     }
   }
+  #print("=======================================")
 }
 
 rm(tmp, tmp_Comments, i, n, row)
