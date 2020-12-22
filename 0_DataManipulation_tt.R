@@ -389,6 +389,15 @@ colnames(data_str_all)[which(names(data_str_all) == "Count")] <- "TagFreq"
 
 # Add badges information
 Badges <- read.csv(file="./raw/Badges.csv",stringsAsFactors=FALSE)
+keep <- c("UserId", "Name", "Date") 
+
+Badges <- Badges[keep]
+Badges <- subset(Badges, Name == "Autobiographer")
+
+colnames(Badges)[3] <- "AutobiographerDate"
+
+data_str_all <- merge(data_str_all, Badges[, c("UserId", "AutobiographerDate")], 
+                      by.x = "OwnerUserId", by.y = "UserId", all.x = TRUE)
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
