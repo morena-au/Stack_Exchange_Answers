@@ -35,6 +35,8 @@ x <- subset(x, freq >0)
 
 require(udpipe)
 UserTag <- document_term_matrix(x, vocabulary, weight = "freq")
+
+# SPECTRAL CLUSTERING
 #https://stackoverflow.com/questions/29417754/is-there-any-sparse-support-for-dist-function-in-r
 # require(wordspace)
 #foo <- dist.matrix(UserTag, method="euclidean", as.dist=TRUE)
@@ -56,8 +58,8 @@ for (i in c(1:dim(UserTagSim)[1])) {
   tmp <- UserTagSim[i,]
   tmp <- as.list(tmp)
   # cosine similarity of Users with itself is always equal to one thus remove it
-  tmp[[i]] <- NULL 
-  if (max(unlist(tmp)) <= 0.7) {
+  tmp[[i]] <- NULL
+  if (max(unlist(tmp)) <= 0.8) {
     if(length(user_name) == 0) {
       user_name <- as.numeric(names[[i]])
     } else {
@@ -71,7 +73,7 @@ for (i in c(1:dim(UserTagSim)[1])) {
   }
 }
 
-# # Users that answer more questions are more penalized 
+# # Users that answer more questions are more penalized
 # # since they followed diverse tags path
 # match(97981, user_name)
 # user_position[311]
@@ -87,11 +89,8 @@ UserTagSimReduced <- UserTagSim[-do.call(c, as.list(user_position)),
                                 -do.call(c, as.list(user_position))]
 
 # convert cosine similarity to cosine distance by subtracting it from 1
-# ref: https://cran.r-project.org/web/packages/textmineR/vignettes/b_document_clustering.html
-UserTagSimReduced@x <- round(UserTagSimReduced@x, 6) - rep(1,UserTagSimReduced@Dim[1])[UserTagSimReduced@i+1]
-
-# convert the matrix to a dist object
-UserTagDis <- as.dist(UserTagSimReduced)
+# Subtraction by a Scalar and convert the matrix to a dist object
+UserTagDis <- as.dist(1- round(UserTagSimReduced, 6))
 
 # User Clustering
 # - hierarchical clustering using Ward's method as merge rule
@@ -103,12 +102,9 @@ plot(hc, main = "Hierarchical clustering of 8502 OwnerUserId based on Tags they 
 rect.hclust(hc, 50, border = "red")
 
 require(cluster)
-
-# https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/
-# https://www.rdocumentation.org/packages/cluster/versions/2.1.0/topics/silhouette
-
+##Silhouette values less than 0.4 are bad
 # Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(2:500,  function(k){
+sil_width <- map_dbl(seq(2, 3000, by=500),  function(k){
   sil <- silhouette(cutree(hc, k=k), UserTagDis)
   model <- summary(sil)
   model$avg.width
@@ -116,37 +112,113 @@ sil_width <- map_dbl(2:500,  function(k){
 
 # Generate a data frame containing both k and sil_width
 sil_df <- data.frame(
-  k = 2:500,
+  k = seq(2, 3000, by=500),
   sil_width = sil_width
 )
 
 # Plot the relationship between k and sil_width
 ggplot(sil_df, aes(x = k, y = sil_width)) +
   geom_line() +
-  scale_x_continuous(breaks = 2:500)
+  scale_x_continuous(breaks = seq(1000, 2000, by=100))
+
+# Use map_dbl to run many models with varying value of k
+sil_width <- map_dbl(seq(1460, 1480, by=1),  function(k){
+  sil <- silhouette(cutree(hc, k=k), UserTagDis)
+  model <- summary(sil)
+  model$avg.width
+})
+
+# Generate a data frame containing both k and sil_width
+sil_df <- data.frame(
+  k = seq(1460, 1480, by=1),
+  sil_width = sil_width
+)
+
+# Plot the relationship between k and sil_width
+ggplot(sil_df, aes(x = k, y = sil_width)) +
+  geom_line() +
+  scale_x_continuous(breaks = seq(1460, 1480, by=1))
+
+# Max silhouettte with k = 1468
+sil <- silhouette(cutree(hc, k=1468), UserTagDis)
+model <- summary(sil)
+cluster_size <- as.data.frame(model$clus.sizes)
+cluster_size$cl <- as.numeric(as.character(cluster_size$cl))
 
 
+# store group in the dataset 
 
-## silhouette average is very bed
-# TODOfor each group delete all the observation that makes the coeff negative and run it agin 
-# https://www.datanovia.com/en/lessons/cluster-validation-statistics-must-know-methods/
-# https://stackoverflow.com/questions/30261435/r-clustering-silhouette-with-observation-labels
+sil_df <- data.frame(cluster = as.numeric(), 
+                     neighbor = as.numeric(),
+                     sil_width = as.numeric(),
+                     stringsAsFactors=FALSE) 
+
+# 1. For all the users
+for (i in 1: dim(sil)[1]) {
+  sil_df[i, ] <- sil[i,]
+}
+
+# add OwnerUserId
+require(data.table)
+setDT(sil_df, keep.rownames = "user_location")
+
+names_reduced_df <- as.data.frame(UserTagSimReduced@Dimnames[[1]])
+setDT(names_reduced_df, keep.rownames = "user_location")
+colnames(names_reduced_df)[2] <- "OwnerUserId"
+
+sil_df <- merge(sil_df, names_reduced_df, by = "user_location", all.x = TRUE)
+sil_df[, 1] <- NULL
 
 
+sil_df <- merge(sil_df, cluster_size, by.x = "cluster", by.y = "cl", all.x = TRUE)
 
-str(si <- silhouette(cutree(hc, k=200), UserTagDis))
-summary(si)
+# Remove observations clustered alone
+sil_df <- subset(sil_df, Freq != 1)
 
+# SILHOUETTE COEFFICIENT INTERPRETATION
+'Thus an {\displaystyle s(i)}s(i) close to one means that the data is 
+appropriately clustered. If {\displaystyle s(i)}s(i) is close to 
+negative one, then by the same logic we see that {\displaystyle i}i 
+would be more appropriate if it was clustered in its neighbouring cluster.
+An {\displaystyle s(i)}s(i) near zero means that the datum is on the
+border of two natural clusters.'
 
+# Keep only clusters with an average silhouette >= 0.5
+# TODO move negative silhouette to neighbor cluster
+# TODO merge cluster with silhouette close to zero
 
+cluster_sil_width <- as.data.frame(model$clus.avg.widths)
+setDT(cluster_sil_width, keep.rownames = "cluster")
+colnames(cluster_sil_width)[2] <- "avg_widths"
 
-# Control for attitude and intentions > which community joined first
-setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
-AssociatedInfo <- read.csv("users_associated_info.csv", stringsAsFactors = FALSE)
+cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.5)
 
-# Remove duplicate
-AssociatedInfo <- data.frame(AssociatedInfo[!duplicated(AssociatedInfo), ])
+sil_df_00 <- subset(sil_df, cluster %in% cluster_sil_width$cluster)
 
-AssociatedInfo$creation_date <- as.POSIXct(AssociatedInfo$creation_date,
-                                           origin="1970-01-01",
-                                           tz='UTC')
+# Move the negative silhouette to the neighbor cluster
+sil_df_00$cluster <- ifelse(sil_df_00$sil_width < 0, 
+                            sil_df_00$neighbor, 
+                            sil_df_00$cluster)
+
+data_str_tr_tt <- subset(data_str_tr_tt, OwnerUserId %in% sil_df_00$OwnerUserId)
+
+data_str_tr_tt <- merge(data_str_tr_tt, sil_df_00[, c("cluster", "OwnerUserId")], 
+      by = "OwnerUserId", all.x = TRUE)
+
+data_str_tr_tt <- subset(data_str_tr_tt, select = -c(TagName, TagFreq))
+colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
+
+# Save the file
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+write.csv(data_str_tr_tt, "data_str_tr_tt_01.csv", row.names = FALSE)
+
+# Gap Time 
+data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
+data_str_tr_gt <- subset(data_str_tr_gt, OwnerUserId %in% sil_df_00$OwnerUserId)
+data_str_tr_gt <- merge(data_str_tr_gt, sil_df_00[, c("cluster", "OwnerUserId")], 
+                        by = "OwnerUserId", all.x = TRUE)
+
+colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
+write.csv(data_str_tr_gt, "data_str_tr_gt_01.csv", row.names = FALSE)
+
+# TODO contributors who answered more question are penalized 
