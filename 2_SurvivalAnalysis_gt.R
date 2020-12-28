@@ -3,8 +3,8 @@ library(survival)
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-data_str_tr_tt <- read.csv("data_str_tr_tt_06_05.csv", stringsAsFactors = FALSE)
-data_str_tr_gt <- read.csv("data_str_tr_gt_06_05.csv", stringsAsFactors = FALSE) 
+data_str_tr_tt <- read.csv("data_str_tr_tt_00_05.csv", stringsAsFactors = FALSE)
+data_str_tr_gt <- read.csv("data_str_tr_gt_00_05.csv", stringsAsFactors = FALSE) 
 
 # remove QuestionTag and add AutobiographerDate
 data_str_tr_gt <- subset(data_str_tr_gt, select = -c(QuestionTag))
@@ -88,12 +88,12 @@ model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           UpMod +
                           DownMod +
                           CommentCount + 
-                          year +
-                          tenure +
                           start_UX +
-                          TagCluster +
                           weekday +
                           Autobiographer +
+                          # year +
+                          # tenure +
+                          # TagCluster +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt, robust = TRUE)
 
 summary(model_pwp_gt_00)

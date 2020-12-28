@@ -45,52 +45,9 @@ require(text2vec)
 # calculate cosine similarity
 UserTagSim <- sim2(UserTag, UserTag, method = "cosine")
 
-# List of users to be removed (with unique tags patterns)
-# names in the matrix
-names <- as.list(UserTagSim@Dimnames[[1]])
-
-# Collect users with low cosine > 0.50 similarity
-# initiate an empty list
-user_name = list()
-user_position = list()
-
-for (i in c(1:dim(UserTagSim)[1])) {
-  tmp <- UserTagSim[i,]
-  tmp <- as.list(tmp)
-  # cosine similarity of Users with itself is always equal to one thus remove it
-  tmp[[i]] <- NULL
-  if (max(unlist(tmp)) <= 0.6) { # Tuning params: Users with max cosine similarity lower than
-    if(length(user_name) == 0) {
-      user_name <- as.numeric(names[[i]])
-    } else {
-      user_name[[length(user_name) + 1]] <- as.numeric(names[[i]])
-    }
-    if(length(user_position) == 0) {
-      user_position <- i
-    } else {
-      user_position[[length(user_position) + 1]] <- i
-    }
-  }
-}
-
-# # Users that answer more questions are more penalized
-# # since they followed diverse tags path
-# match(97981, user_name)
-# user_position[311]
-# bar <- as.data.frame(UserTag[3897,])
-# foo <- subset(data_str_tr_tt, OwnerUserId == 97981)
-
-# Remove rows and columns in the UserTagSim
-# TODO if we group for the first tag or most frequent tag per question
-# we create more homogeneous groups
-# TODO considering all tags we group users who asked the same questions
-
-UserTagSimReduced <- UserTagSim[-do.call(c, as.list(user_position)),
-                                -do.call(c, as.list(user_position))]
-
 # convert cosine similarity to cosine distance by subtracting it from 1
 # Subtraction by a Scalar and convert the matrix to a dist object
-UserTagDis <- as.dist(1- round(UserTagSimReduced, 6))
+UserTagDis <- as.dist(1- round(UserTagSim, 6))
 
 # User Clustering
 # - hierarchical clustering using Ward's method as merge rule
@@ -104,7 +61,7 @@ rect.hclust(hc, 50, border = "red")
 require(cluster)
 ##Silhouette values less than 0.4 are bad
 # Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(2, 6000, by=500),  function(k){
+sil_width <- map_dbl(seq(2, 9000, by=500),  function(k){
   sil <- silhouette(cutree(hc, k=k), UserTagDis)
   model <- summary(sil)
   model$avg.width
@@ -112,17 +69,17 @@ sil_width <- map_dbl(seq(2, 6000, by=500),  function(k){
 
 # Generate a data frame containing both k and sil_width
 sil_df <- data.frame(
-  k = seq(2, 6000, by=500),
+  k = seq(2, 9000, by=500),
   sil_width = sil_width
 )
 
 # Plot the relationship between k and sil_width
 ggplot(sil_df, aes(x = k, y = sil_width)) +
   geom_line() +
-  scale_x_continuous(breaks = seq(2, 6000, by=500))
+  scale_x_continuous(breaks = seq(2, 9000, by=500))
 
 # Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(3500, 3600, by=1),  function(k){
+sil_width <- map_dbl(seq(5500, 6500, by=10),  function(k){
   sil <- silhouette(cutree(hc, k=k), UserTagDis)
   model <- summary(sil)
   model$avg.width
@@ -130,17 +87,17 @@ sil_width <- map_dbl(seq(3500, 3600, by=1),  function(k){
 
 # Generate a data frame containing both k and sil_width
 sil_df <- data.frame(
-  k = seq(3500, 3600, by=1),
+  k = seq(5500, 6500, by=10),
   sil_width = sil_width
 )
 
 # Plot the relationship between k and sil_width
 ggplot(sil_df, aes(x = k, y = sil_width)) +
   geom_line() +
-  scale_x_continuous(breaks = seq(3500, 3600, by=1))
+  scale_x_continuous(breaks = seq(5500, 6500, by=10))
 
 # Max silhouettte with k = 1468
-sil <- silhouette(cutree(hc, k=3575), UserTagDis)
+sil <- silhouette(cutree(hc, k=5660), UserTagDis)
 model <- summary(sil)
 cluster_size <- as.data.frame(model$clus.sizes)
 cluster_size$cl <- as.numeric(as.character(cluster_size$cl))
@@ -162,7 +119,7 @@ for (i in 1: dim(sil)[1]) {
 require(data.table)
 setDT(sil_df, keep.rownames = "user_location")
 
-names_reduced_df <- as.data.frame(UserTagSimReduced@Dimnames[[1]])
+names_reduced_df <- as.data.frame(UserTagSim@Dimnames[[1]])
 setDT(names_reduced_df, keep.rownames = "user_location")
 colnames(names_reduced_df)[2] <- "OwnerUserId"
 
@@ -209,7 +166,7 @@ colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_tt, "data_str_tr_tt_06_05.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt_00_05.csv", row.names = FALSE)
 
 # Gap Time 
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
@@ -218,6 +175,6 @@ data_str_tr_gt <- merge(data_str_tr_gt, sil_df_00[, c("cluster", "OwnerUserId")]
                         by = "OwnerUserId", all.x = TRUE)
 
 colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
-write.csv(data_str_tr_gt, "data_str_tr_gt_06_05.csv", row.names = FALSE)
+write.csv(data_str_tr_gt, "data_str_tr_gt_00_05.csv", row.names = FALSE)
 
 # TODO contributors who answered more question are penalized 
