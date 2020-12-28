@@ -59,44 +59,8 @@ plot(hc, main = "Hierarchical clustering of 8502 OwnerUserId based on Tags they 
 rect.hclust(hc, 50, border = "red")
 
 require(cluster)
-##Silhouette values less than 0.4 are bad
-# Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(2, 9000, by=500),  function(k){
-  sil <- silhouette(cutree(hc, k=k), UserTagDis)
-  model <- summary(sil)
-  model$avg.width
-})
 
-# Generate a data frame containing both k and sil_width
-sil_df <- data.frame(
-  k = seq(2, 9000, by=500),
-  sil_width = sil_width
-)
-
-# Plot the relationship between k and sil_width
-ggplot(sil_df, aes(x = k, y = sil_width)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(2, 9000, by=500))
-
-# Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(5500, 6500, by=10),  function(k){
-  sil <- silhouette(cutree(hc, k=k), UserTagDis)
-  model <- summary(sil)
-  model$avg.width
-})
-
-# Generate a data frame containing both k and sil_width
-sil_df <- data.frame(
-  k = seq(5500, 6500, by=10),
-  sil_width = sil_width
-)
-
-# Plot the relationship between k and sil_width
-ggplot(sil_df, aes(x = k, y = sil_width)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(5500, 6500, by=10))
-
-# Max silhouettte with k = 1468
+# Max silhouettte with k = 5660
 sil <- silhouette(cutree(hc, k=5660), UserTagDis)
 model <- summary(sil)
 cluster_size <- as.data.frame(model$clus.sizes)
@@ -148,7 +112,7 @@ cluster_sil_width <- as.data.frame(model$clus.avg.widths)
 setDT(cluster_sil_width, keep.rownames = "cluster")
 colnames(cluster_sil_width)[2] <- "avg_widths"
 
-cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.5) # Tuning params
+cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.4) # Tuning params
 sil_df_00 <- subset(sil_df, cluster %in% cluster_sil_width$cluster)
 
 # Move the negative silhouette to the neighbor cluster
@@ -166,7 +130,7 @@ colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_tt, "data_str_tr_tt_00_05.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt_00_04.csv", row.names = FALSE)
 
 # Gap Time 
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
@@ -175,6 +139,6 @@ data_str_tr_gt <- merge(data_str_tr_gt, sil_df_00[, c("cluster", "OwnerUserId")]
                         by = "OwnerUserId", all.x = TRUE)
 
 colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
-write.csv(data_str_tr_gt, "data_str_tr_gt_00_05.csv", row.names = FALSE)
+write.csv(data_str_tr_gt, "data_str_tr_gt_00_04.csv", row.names = FALSE)
 
 # TODO contributors who answered more question are penalized 
