@@ -3,7 +3,7 @@ library(survival)
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-data_str_tr_tt <- read.csv("data_str_tr_tt_01.csv", stringsAsFactors = FALSE)
+data_str_tr_tt <- read.csv("data_str_tr_tt_06_05.csv", stringsAsFactors = FALSE)
 
 data_str_tr_tt$weekday <- ifelse(data_str_tr_tt$day %in% c("Monday", "Tuesday", 
                                                            "Wednesday", "Thursday", 
@@ -67,12 +67,12 @@ data_str_tr_tt$score <- data_str_tr_tt$UpMod - data_str_tr_tt$DownMod
 model_pwp_tt_00 = coxph(Surv(tstart, tstop, status) ~
                           AcceptedByOriginator + 
                           EditCount +
-                          score +
-                          # UpMod +
-                          # DownMod +
+                          # score +
+                          UpMod +
+                          DownMod +
                           CommentCount + 
-                          # year +
-                          # tenure +
+                          year +
+                          tenure +
                           start_UX +
                           TagCluster +
                           weekday +

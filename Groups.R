@@ -59,7 +59,7 @@ for (i in c(1:dim(UserTagSim)[1])) {
   tmp <- as.list(tmp)
   # cosine similarity of Users with itself is always equal to one thus remove it
   tmp[[i]] <- NULL
-  if (max(unlist(tmp)) <= 0.8) {
+  if (max(unlist(tmp)) <= 0.6) { # Tuning params: Users with max cosine similarity lower than
     if(length(user_name) == 0) {
       user_name <- as.numeric(names[[i]])
     } else {
@@ -104,7 +104,7 @@ rect.hclust(hc, 50, border = "red")
 require(cluster)
 ##Silhouette values less than 0.4 are bad
 # Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(2, 3000, by=500),  function(k){
+sil_width <- map_dbl(seq(2, 6000, by=500),  function(k){
   sil <- silhouette(cutree(hc, k=k), UserTagDis)
   model <- summary(sil)
   model$avg.width
@@ -112,17 +112,17 @@ sil_width <- map_dbl(seq(2, 3000, by=500),  function(k){
 
 # Generate a data frame containing both k and sil_width
 sil_df <- data.frame(
-  k = seq(2, 3000, by=500),
+  k = seq(2, 6000, by=500),
   sil_width = sil_width
 )
 
 # Plot the relationship between k and sil_width
 ggplot(sil_df, aes(x = k, y = sil_width)) +
   geom_line() +
-  scale_x_continuous(breaks = seq(1000, 2000, by=100))
+  scale_x_continuous(breaks = seq(2, 6000, by=500))
 
 # Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(1460, 1480, by=1),  function(k){
+sil_width <- map_dbl(seq(3500, 3600, by=1),  function(k){
   sil <- silhouette(cutree(hc, k=k), UserTagDis)
   model <- summary(sil)
   model$avg.width
@@ -130,17 +130,17 @@ sil_width <- map_dbl(seq(1460, 1480, by=1),  function(k){
 
 # Generate a data frame containing both k and sil_width
 sil_df <- data.frame(
-  k = seq(1460, 1480, by=1),
+  k = seq(3500, 3600, by=1),
   sil_width = sil_width
 )
 
 # Plot the relationship between k and sil_width
 ggplot(sil_df, aes(x = k, y = sil_width)) +
   geom_line() +
-  scale_x_continuous(breaks = seq(1460, 1480, by=1))
+  scale_x_continuous(breaks = seq(3500, 3600, by=1))
 
 # Max silhouettte with k = 1468
-sil <- silhouette(cutree(hc, k=1468), UserTagDis)
+sil <- silhouette(cutree(hc, k=3575), UserTagDis)
 model <- summary(sil)
 cluster_size <- as.data.frame(model$clus.sizes)
 cluster_size$cl <- as.numeric(as.character(cluster_size$cl))
@@ -191,8 +191,7 @@ cluster_sil_width <- as.data.frame(model$clus.avg.widths)
 setDT(cluster_sil_width, keep.rownames = "cluster")
 colnames(cluster_sil_width)[2] <- "avg_widths"
 
-cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.5)
-
+cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.5) # Tuning params
 sil_df_00 <- subset(sil_df, cluster %in% cluster_sil_width$cluster)
 
 # Move the negative silhouette to the neighbor cluster
@@ -210,7 +209,7 @@ colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_tt, "data_str_tr_tt_01.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt_06_05.csv", row.names = FALSE)
 
 # Gap Time 
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
@@ -219,6 +218,6 @@ data_str_tr_gt <- merge(data_str_tr_gt, sil_df_00[, c("cluster", "OwnerUserId")]
                         by = "OwnerUserId", all.x = TRUE)
 
 colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
-write.csv(data_str_tr_gt, "data_str_tr_gt_01.csv", row.names = FALSE)
+write.csv(data_str_tr_gt, "data_str_tr_gt_06_05.csv", row.names = FALSE)
 
 # TODO contributors who answered more question are penalized 

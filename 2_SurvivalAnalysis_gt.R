@@ -3,8 +3,8 @@ library(survival)
 
 # Import file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-data_str_tr_tt <- read.csv("data_str_tr_tt_01.csv", stringsAsFactors = FALSE)
-data_str_tr_gt <- read.csv("data_str_tr_gt_01.csv", stringsAsFactors = FALSE) 
+data_str_tr_tt <- read.csv("data_str_tr_tt_06_05.csv", stringsAsFactors = FALSE)
+data_str_tr_gt <- read.csv("data_str_tr_gt_06_05.csv", stringsAsFactors = FALSE) 
 
 # remove QuestionTag and add AutobiographerDate
 data_str_tr_gt <- subset(data_str_tr_gt, select = -c(QuestionTag))
@@ -84,9 +84,9 @@ data_str_tr_gt$score <- data_str_tr_gt$UpMod - data_str_tr_gt$DownMod
 model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           AcceptedByOriginator + 
                           EditCount +
-                          score +
-                          # UpMod +
-                          # # DownMod + 
+                          # score +
+                          UpMod +
+                          DownMod +
                           CommentCount + 
                           year +
                           tenure +
