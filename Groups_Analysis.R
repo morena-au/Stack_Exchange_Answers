@@ -67,26 +67,26 @@ hc <- hclust(UserTagDis, "ward.D")
 
 require(cluster)
 
-# Use map_dbl to run many models with varying value of k
-sil_width <- map_dbl(seq(4000, 5000, by=10),  function(k){
-  sil <- silhouette(cutree(hc, k=k), UserTagDis)
-  model <- summary(sil)
-  model$avg.width
-})
+# # Use map_dbl to run many models with varying value of k
+# sil_width <- map_dbl(seq(4000, 5000, by=10),  function(k){
+#   sil <- silhouette(cutree(hc, k=k), UserTagDis)
+#   model <- summary(sil)
+#   model$avg.width
+# })
+# 
+# 
+# # Generate a data frame containing both k and sil_width
+# sil_df <- data.frame(
+#   k = seq(4000, 5000, by=10),
+#   sil_width = sil_width
+# )
+# 
+# # Plot the relationship between k and sil_width
+# ggplot(sil_df, aes(x = k, y = sil_width)) +
+#   geom_line() +
+#   scale_x_continuous(breaks = seq(4000, 5000, by=10))
 
-
-# Generate a data frame containing both k and sil_width
-sil_df <- data.frame(
-  k = seq(4000, 5000, by=10),
-  sil_width = sil_width
-)
-
-# Plot the relationship between k and sil_width
-ggplot(sil_df, aes(x = k, y = sil_width)) +
-  geom_line() +
-  scale_x_continuous(breaks = seq(4000, 5000, by=10))
-
-# Max silhouette with k = 5654
+# Max silhouette with k = 4570 with top tags 50 - sil avg 0.53
 sil <- silhouette(cutree(hc, k=4570), UserTagDis)
 model <- summary(sil)
 cluster_size <- as.data.frame(model$clus.sizes)
@@ -149,113 +149,158 @@ hist(sil_df$cluster_avg_widths)
 tmp <- merge(sil_df, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
 tdm <- aggregate(tmp$freq, by=list(cluster=tmp$cluster, tag=tmp$term), FUN=sum)
 
-
-# A lot of observations with an average cluster of 1
-# what are those observations?
-cluster_1 <- subset(sil_df, cluster_avg_widths == 1) # 4100 users
-length(unique(cluster_1$cluster)) # 574 cluster
-summary(cluster_1$Freq) # Mean 15 users per cluster
-
-# Users that answer the same questions and then censured
-# for each cluster get max event and count of unique question 
-# for the users within the cluster
-
-# Initialize the dataframe and the row count
-cluster_1_desc <- data.frame(cluster = as.numeric(), 
-                           max_event = as.numeric(),
-                           count_question = as.numeric(),
-                           stringsAsFactors=FALSE) 
-row = 1
-
-# 1. For all the clusters
-for (i in unique(cluster_1$cluster)) {
-  tmp <- subset(cluster_1, cluster == i) %>%
-          select(OwnerUserId)
-  tmp <- subset(data_str_tr_tt, OwnerUserId %in% as.numeric(tmp[[1]]))
-  
-  # Store the result in the dataframe
-  cluster_1_desc[row, 1] <- i
-  cluster_1_desc[row, 2] <-  max(tmp$event)
-  cluster_1_desc[row, 3] <- length(unique(tmp$ParentId))
-  
-  row = row + 1
-}
-
-rm(tmp, i, row)
+# Move the negative silhouette to the neighbor cluster
+sil_df$cluster <- ifelse(sil_df$sil_width < 0, 
+                            sil_df$neighbor, 
+                            sil_df$cluster)
 
 
-# COMMENT MOST PEOPLE HAVE ONLY ONE ANSWER TO ONE QUESTION
-# SAME TAG USED IN DIFFERENT QUESTIONS
+data_str_tr_tt <- subset(data_str_tr_tt, OwnerUserId %in% sil_df$OwnerUserId)
 
-# Higher the silhouette score and more distinct the clusters are
+data_str_tr_tt <- merge(data_str_tr_tt, sil_df[, c("cluster", "OwnerUserId")], 
+                        by = "OwnerUserId", all.x = TRUE)
 
-# which tags are in each of these clusters
-# Build a term-document matrix: cluster - tag -freq
-
-foo <- merge(cluster_1, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
-tdm <- aggregate(foo$freq, by=list(cluster=foo$cluster, tag=foo$term), FUN=sum)
+data_str_tr_tt <- subset(data_str_tr_tt, select = -c(TagName, TagFreq))
+colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
 
 
-require("wordcloud")
-require("RColorBrewer")
-bar <- subset(tdm, cluster == 4)
-wordcloud(words = bar$tag, freq = bar$x, min.freq = 1,
-          max.words=200, random.order=FALSE, rot.per=0.35, 
-          colors=brewer.pal(8, "Dark2"))
+data_str_tr_tt$weekday <- ifelse(data_str_tr_tt$day %in% c("Monday", "Tuesday", 
+                                                           "Wednesday", "Thursday", 
+                                                           "Friday"), 1, 0)
+data_str_tr_tt$day <- NULL
 
-# What other info lower silhouette cluster adds
+# Make sure that the tag cluster have at least one different
+# treatment manifestation within the cluster
 
-cluster_09 <- subset(sil_df, cluster_avg_widths >= 0.9 & 
-                       cluster_avg_widths < 1) # +41 users
-length(unique(cluster_09$cluster)) # +3 [3348 4472 5468] clusters
+TagCluster_tt <- data_str_tr_tt %>%
+  group_by(TagCluster) %>%
+  summarise(UniqueEdit = length(unique(EditCount)),
+            UniqueAcc = length(unique(AcceptedByOriginator)),
+            UniqueUp = length(unique(UpMod)),
+            UniqueMod = length(unique(DownMod)),
+            UniqueComm = length(unique(CommentCount))) %>%
+  select(TagCluster, UniqueEdit, UniqueAcc, 
+         UniqueUp, UniqueMod, UniqueComm)
 
-foo <- merge(cluster_09, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
-tdm <- aggregate(foo$freq, by=list(cluster=foo$cluster, tag=foo$term), FUN=sum)
+TagCluster_tt <- subset(TagCluster_tt, !(UniqueEdit == 1 & UniqueAcc == 1 & UniqueUp == 1 &
+                                           UniqueMod == 1 & UniqueComm == 1))
 
-require("wordcloud")
-require("RColorBrewer")
-bar <- subset(tdm, cluster == 5468)
-wordcloud(words = bar$tag, freq = bar$x, min.freq = 1,
-          max.words=200, random.order=FALSE, rot.per=0.35, 
-          colors=brewer.pal(8, "Dark2"))
+# Subset gt by the clusters who have at least one different treatment
+data_str_tr_tt <- subset(data_str_tr_tt, TagCluster %in% TagCluster_tt$TagCluster)
 
-cluster_08 <- subset(sil_df, cluster_avg_widths >= 0.8 & 
-                       cluster_avg_widths < 0.9) # +182 users
-length(unique(cluster_08$cluster)) # +29 clusters
+# Did the user received the autobiographer badge before answering the first question
+# shows how committed users are within the platform (use as advertisement tools)
+
+first_event <- data_str_tr_tt %>%
+  filter(event == 1) %>%
+  select(OwnerUserId, event, CreationDate, AutobiographerDate)
+
+# Format date
+first_event$CreationDate <- as.POSIXct(first_event$CreationDate, 
+                                       format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+first_event$AutobiographerDate <- as.POSIXct(first_event$AutobiographerDate, 
+                                             format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# if the user completed the autobiography before answering the first question
+first_event$Autobiographer <- ifelse(first_event$AutobiographerDate < 
+                                       first_event$CreationDate, 1, 0 )
+
+first_event$Autobiographer <- ifelse(is.na(first_event$Autobiographer), 0, 
+                                     first_event$Autobiographer) 
+
+data_str_tr_tt <- merge(data_str_tr_tt, first_event[, c("OwnerUserId", "Autobiographer")], 
+                        by = "OwnerUserId", all.x = TRUE)
+
+data_str_tr_tt$AutobiographerDate <- NULL
+
+# Save the file
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+write.csv(data_str_tr_tt, "data_str_tr_tt_top_tag_50.csv", row.names = FALSE)
+
+# Gap Time 
+data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
+data_str_tr_gt <- subset(data_str_tr_gt, OwnerUserId %in% sil_df$OwnerUserId)
+data_str_tr_gt <- merge(data_str_tr_gt, sil_df[, c("cluster", "OwnerUserId")], 
+                        by = "OwnerUserId", all.x = TRUE)
+
+colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
+
+# remove QuestionTag and add AutobiographerDate
+data_str_tr_gt <- subset(data_str_tr_gt, select = -c(QuestionTag))
+
+# Add badges information
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+Badges <- read.csv(file="./raw/Badges.csv",stringsAsFactors=FALSE)
+keep <- c("UserId", "Name", "Date") 
+
+Badges <- Badges[keep]
+Badges <- subset(Badges, Name == "Autobiographer")
+
+colnames(Badges)[3] <- "AutobiographerDate"
+
+data_str_tr_gt <- merge(data_str_tr_gt, Badges[, c("UserId", "AutobiographerDate")], 
+                      by.x = "OwnerUserId", by.y = "UserId", all.x = TRUE)
 
 
-# for each cluster get max event and count of unique question 
-# for the users within the cluster
+# Create a weekday and a weekend variable
+data_str_tr_gt$weekday <- ifelse(data_str_tr_gt$day %in% c("Monday", "Tuesday", 
+                                                           "Wednesday", "Thursday", 
+                                                           "Friday"), 1, 0)
 
-# Initialize the dataframe and the row count
-cluster_08_desc <- data.frame(cluster = as.numeric(), 
-                             max_event = as.numeric(),
-                             count_question = as.numeric(),
-                             stringsAsFactors=FALSE) 
-row = 1
+data_str_tr_gt$day <- NULL
 
-# 1. For all the clusters
-for (i in unique(cluster_08$cluster)) {
-  tmp <- subset(cluster_08, cluster == i) %>%
-    select(OwnerUserId)
-  tmp <- subset(data_str_tr_tt, OwnerUserId %in% as.numeric(tmp[[1]]))
-  
-  # Store the result in the dataframe
-  cluster_08_desc[row, 1] <- i
-  cluster_08_desc[row, 2] <-  max(tmp$event)
-  cluster_08_desc[row, 3] <- length(unique(tmp$ParentId))
-  
-  row = row + 1
-}
+# Make sure that the tag cluster have at least one different
+# treatment manifestation within the cluster
 
-rm(tmp, i, row)
+TagCluster_gt <- data_str_tr_gt %>%
+  group_by(TagCluster) %>%
+  summarise(UniqueEdit = length(unique(EditCount)),
+            UniqueAcc = length(unique(AcceptedByOriginator)),
+            UniqueUp = length(unique(UpMod)),
+            UniqueMod = length(unique(DownMod)),
+            UniqueComm = length(unique(CommentCount))) %>%
+  select(TagCluster, UniqueEdit, UniqueAcc, 
+         UniqueUp, UniqueMod, UniqueComm)
 
-foo <- merge(cluster_08, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
-tdm <- aggregate(foo$freq, by=list(cluster=foo$cluster, tag=foo$term), FUN=sum)
+TagCluster_gt <- subset(TagCluster_gt, !(UniqueEdit == 1 & UniqueAcc == 1 & UniqueUp == 1 &
+                                           UniqueMod == 1 & UniqueComm == 1))
 
-cluster_07 <- subset(sil_df, cluster_avg_widths >= 0.7 & 
-                       cluster_avg_widths < 0.8) # +167 users
-length(unique(cluster_07$cluster)) # +44 cl
+# Subset gt by the clusters who have at least one different treatment
+data_str_tr_gt <- subset(data_str_tr_gt, TagCluster %in% TagCluster_gt$TagCluster)
 
-foo <- merge(cluster_07, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
-tdm <- aggregate(foo$freq, by=list(cluster=foo$cluster, tag=foo$term), FUN=sum)
+
+# Did the user received the autobiographer badge before answering the first question
+# shows how committed users are within the platform (use as advertisement tools)
+
+first_event <- data_str_tr_gt %>%
+  filter(event == 1) %>%
+  select(OwnerUserId, event, CreationDate, AutobiographerDate)
+
+# Format date
+first_event$CreationDate <- as.POSIXct(first_event$CreationDate, 
+                                       format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+first_event$AutobiographerDate <- as.POSIXct(first_event$AutobiographerDate, 
+                                             format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+# if the user completed the autobiography before answering the first question
+first_event$Autobiographer <- ifelse(first_event$AutobiographerDate < 
+                                       first_event$CreationDate, 1, 0 )
+
+first_event$Autobiographer <- ifelse(is.na(first_event$Autobiographer), 0, 
+                                     first_event$Autobiographer) 
+
+data_str_tr_gt <- merge(data_str_tr_gt, first_event[, c("OwnerUserId", "Autobiographer")], 
+                        by = "OwnerUserId", all.x = TRUE)
+
+data_str_tr_gt$AutobiographerDate <- NULL
+
+# Save the file
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+write.csv(data_str_tr_gt, "data_str_tr_gt_top_tag_50.csv", row.names = FALSE)
+
+
+
+
+
