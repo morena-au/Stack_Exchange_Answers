@@ -129,7 +129,7 @@ cluster_sil_width <- as.data.frame(model$clus.avg.widths)
 setDT(cluster_sil_width, keep.rownames = "cluster")
 colnames(cluster_sil_width)[2] <- "avg_widths"
 
-cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.7) # Tuning params
+cluster_sil_width <- subset(cluster_sil_width, avg_widths >= 0.8) # Tuning params
 sil_df_00 <- subset(sil_df, cluster %in% cluster_sil_width$cluster)
 
 # Move the negative silhouette to the neighbor cluster
@@ -147,7 +147,7 @@ colnames(data_str_tr_tt)[dim(data_str_tr_tt)[2]] <- "TagCluster"
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_tt, "data_str_tr_tt_00_07.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt_00_08.csv", row.names = FALSE)
 
 # Gap Time 
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
@@ -156,6 +156,6 @@ data_str_tr_gt <- merge(data_str_tr_gt, sil_df_00[, c("cluster", "OwnerUserId")]
                         by = "OwnerUserId", all.x = TRUE)
 
 colnames(data_str_tr_gt)[dim(data_str_tr_gt)[2]] <- "TagCluster"
-write.csv(data_str_tr_gt, "data_str_tr_gt_00_07.csv", row.names = FALSE)
+write.csv(data_str_tr_gt, "data_str_tr_gt_00_08.csv", row.names = FALSE)
 
 # TODO contributors who answered more question are penalized 
