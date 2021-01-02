@@ -64,7 +64,7 @@ data_str_tr_tt <- subset(data_str_all_tt, event <= 4)
 write.csv(data_str_tr_tt, "data_str_tr_tt.csv", row.names = FALSE)
 
 # DESCRIPTIVE 
-data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
+data_str_tr_tt <- read.csv("data_str_tr_tt_00_06.csv", stringsAsFactors = FALSE)
 data_str_tr_tt$event <- factor(data_str_tr_tt$event)
 data_str_tr_tt$status <- factor(data_str_tr_tt$status)
 data_str_tr_tt$TimeBetweenAnswer <- data_str_tr_tt$tstop - data_str_tr_tt$tstart

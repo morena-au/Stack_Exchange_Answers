@@ -25,13 +25,13 @@ Tags <- merge(data_str_tr_tt[, c("ParentId", "OwnerUserId")], Tags[,c("PostId", 
 
 Tags$TagName <- ifelse(is.na(Tags$TagName), "no-tags", Tags$TagName)
 
-## TODO TOO MANY TAGS TRY TO CONSIDER ONLY THE TOP 
+# ## TODO TOO MANY TAGS TRY TO CONSIDER ONLY THE TOP 
+# 
+# TopTags <- TagsTable %>%
+#   arrange(desc(Count)) %>%
+#   head(100)
 
-TopTags <- TagsTable %>%
-  arrange(desc(Count)) %>%
-  head(50)
-
-Tags <- merge(Tags, TopTags[, c("TagName", "Count")], by = "TagName", all.x = TRUE)
+Tags <- merge(Tags, TagsTable[, c("TagName", "Count")], by = "TagName", all.x = TRUE)
 
 Tags$TagName <- ifelse(is.na(Tags$Count), "other_tags", Tags$TagName)
 
@@ -68,7 +68,7 @@ hc <- hclust(UserTagDis, "ward.D")
 require(cluster)
 
 # # Use map_dbl to run many models with varying value of k
-# sil_width <- map_dbl(seq(4000, 5000, by=10),  function(k){
+# sil_width <- map_dbl(seq(5000, 6500, by=10),  function(k){
 #   sil <- silhouette(cutree(hc, k=k), UserTagDis)
 #   model <- summary(sil)
 #   model$avg.width
@@ -77,17 +77,20 @@ require(cluster)
 # 
 # # Generate a data frame containing both k and sil_width
 # sil_df <- data.frame(
-#   k = seq(4000, 5000, by=10),
+#   k = seq(5000, 6500, by=10),
 #   sil_width = sil_width
 # )
 # 
 # # Plot the relationship between k and sil_width
 # ggplot(sil_df, aes(x = k, y = sil_width)) +
 #   geom_line() +
-#   scale_x_continuous(breaks = seq(4000, 5000, by=10))
+#   scale_x_continuous(breaks = seq(5000, 6500, by=10))
 
+# Silhouette with k= 5650 with all the tags - sil avg 0.3192589
+# Max silhouette with k = 5100 with top tags 100 - sil avg 0.4098277
+# Max silhouette with k = 5300 with top tags 200 - sil avg 0.34
 # Max silhouette with k = 4570 with top tags 50 - sil avg 0.53
-sil <- silhouette(cutree(hc, k=4570), UserTagDis)
+sil <- silhouette(cutree(hc, k=5650), UserTagDis)
 model <- summary(sil)
 cluster_size <- as.data.frame(model$clus.sizes)
 cluster_size$cl <- as.numeric(as.character(cluster_size$cl))
@@ -149,11 +152,16 @@ hist(sil_df$cluster_avg_widths)
 tmp <- merge(sil_df, x, by.x = "OwnerUserId", by.y = "doc_id", all.x = TRUE)
 tdm <- aggregate(tmp$freq, by=list(cluster=tmp$cluster, tag=tmp$term), FUN=sum)
 
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+write.csv(tdm, "tdm_all.csv", row.names = FALSE)
+
 # Move the negative silhouette to the neighbor cluster
 sil_df$cluster <- ifelse(sil_df$sil_width < 0, 
                             sil_df$neighbor, 
                             sil_df$cluster)
 
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
+write.csv(sil_df, "silhouette_df_all.csv", row.names = FALSE)
 
 data_str_tr_tt <- subset(data_str_tr_tt, OwnerUserId %in% sil_df$OwnerUserId)
 
@@ -216,7 +224,7 @@ data_str_tr_tt$AutobiographerDate <- NULL
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_tt, "data_str_tr_tt_top_tag_50.csv", row.names = FALSE)
+write.csv(data_str_tr_tt, "data_str_tr_tt_all.csv", row.names = FALSE)
 
 # Gap Time 
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
@@ -298,7 +306,7 @@ data_str_tr_gt$AutobiographerDate <- NULL
 
 # Save the file
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
-write.csv(data_str_tr_gt, "data_str_tr_gt_top_tag_50.csv", row.names = FALSE)
+write.csv(data_str_tr_gt, "data_str_tr_gt_all.csv", row.names = FALSE)
 
 
 
