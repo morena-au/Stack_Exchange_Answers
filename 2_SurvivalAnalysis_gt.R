@@ -63,6 +63,201 @@ data_str_tr_gt$weekday <- factor(data_str_tr_gt$weekday) # contributor posted du
 data_str_tr_gt$Autobiographer <- factor(data_str_tr_gt$Autobiographer)
 data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginator)
 
+# DESCRIPTIVE 
+
+# Start UX
+#Base Information
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(start_UX) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt$event)) {
+  event <- subset(data_str_tr_gt, event == i) %>%
+    group_by(start_UX, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
+
+# Autobiographer
+#Base Information
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(Autobiographer) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt$event)) {
+  event <- subset(data_str_tr_gt, event == i) %>%
+    group_by(Autobiographer, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
+
+
+# year
+#Base Information
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(year) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt$event)) {
+  event <- subset(data_str_tr_gt, event == i) %>%
+    group_by(year, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  event <- matrix(c(event$n), nrow = 7, ncol = 2, byrow = TRUE)
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(rep(0, 7), nrow = 7, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
+# tenure
+for (i in unique(data_str_tr_gt$event)) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          summarise(mean = mean(tenure), 
+                    median = median(tenure),
+                    sdt = sd(tenure)))
+}
+
+# Numerical descriptive table 
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(status)%>%
+          summarise(mean(tenure), median(tenure),sd(tenure)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt, event == i)
+  print(pairwise.wilcox.test(event$tenure, event$status, p.adjust.method="none"))
+  #print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# weekday
+#Base Information
+for (i in 1:4) {
+  print(subset(data_str_tr_gt, event == i) %>%
+          group_by(weekday) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in 1:4) {
+  event <- subset(data_str_tr_gt, event == i) %>%
+    group_by(weekday, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
 
 # gt model
 model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
@@ -90,6 +285,348 @@ data_str_tr_gt_tags$weekday <- factor(data_str_tr_gt_tags$weekday) # contributor
 data_str_tr_gt_tags$Autobiographer <- factor(data_str_tr_gt_tags$Autobiographer)
 data_str_tr_gt_tags$AcceptedByOriginator <- factor(data_str_tr_gt_tags$AcceptedByOriginator)
 
+# Tags Descriptive 
+table(data_str_tr_gt_tags$status, data_str_tr_gt_tags$event)
+
+# Accepted by the originator
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(AcceptedByOriginator) %>%
+          tally())
+}
+
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt_tags$event)) {
+  event <- subset(data_str_tr_gt_tags, event == i) %>%
+    group_by(AcceptedByOriginator, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  if (i != 1) { # because it is not possible to calculate it 
+    print(chisq.test(event))
+  }
+  
+  print("#################################")
+}
+
+# - "EditCount" 
+# Base Information table
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          tally(EditCount))
+}
+
+# Numerical descriptive table 
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(status)%>%
+          summarise(round(mean(EditCount),3), median(EditCount),sd(EditCount)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt_tags, event == i)
+  print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
+  #print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# - "UpMod"  
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          tally(UpMod))
+}
+
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(status)%>%
+          summarise(round(mean(UpMod), 3), median(UpMod),sd(UpMod)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt_tags, event == i)
+  print(pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none"))
+  # print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# - "DownMod" 
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          tally(DownMod))
+}
+
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(status)%>%
+          summarise(round(mean(DownMod), 3), median(DownMod),sd(DownMod)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt_tags, event == i)
+  print(pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none"))
+  # print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+# - "CommentCount"
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          tally(CommentCount))
+}
+
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(status)%>%
+          summarise(round(mean(CommentCount), 3), median(CommentCount),sd(CommentCount)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt_tags, event == i)
+  print(pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none"))
+  # print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# Start UX
+#Base Information
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(start_UX) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt_tags$event)) {
+  event <- subset(data_str_tr_gt_tags, event == i) %>%
+    group_by(start_UX, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
+
+# Autobiographer
+#Base Information
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(Autobiographer) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt_tags$event)) {
+  event <- subset(data_str_tr_gt_tags, event == i) %>%
+    group_by(Autobiographer, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
+# year
+#Base Information
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(year) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt_tags$event)) {
+  event <- subset(data_str_tr_gt_tags, event == i) %>%
+    group_by(year, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  print("TOTAL")
+  event <- matrix(c(event$n), nrow = 7, ncol = 2, byrow = TRUE)
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(rep(0, 7), nrow = 7, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event)) # Warning due to the low number of observations (reduce at 3 event maybe?)
+  print("Chi-squared with simulation conditional on the marginals")
+  print(chisq.test(event, simulate.p.value = TRUE))
+  
+  print("#################################")
+}
+
+
+#tenure
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          summarise(mean = mean(tenure), 
+                    median = median(tenure),
+                    sdt = sd(tenure)))
+}
+
+# Numerical descriptive table 
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(status)%>%
+          summarise(mean(tenure), median(tenure),sd(tenure)))
+  print("===============================================")
+}
+
+for (i in unique(data_str_tr_gt_tags$event)) {
+  print(paste("Event", i))
+  event <- subset(data_str_tr_gt_tags, event == i)
+  print(pairwise.wilcox.test(event$tenure, event$status, p.adjust.method="none"))
+  #print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print("===============================================")
+}
+
+
+# weekday
+#Base Information
+for (i in 1:4) {
+  print(subset(data_str_tr_gt_tags, event == i) %>%
+          group_by(weekday) %>%
+          tally())
+}
+
+# Time count of censured across accepted answers
+for (i in 1:4) {
+  event <- subset(data_str_tr_gt_tags, event == i) %>%
+    group_by(weekday, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+    event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  } else {
+    event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+  
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  print(chisq.test(event))
+  
+  print("#################################")
+}
+
 # gt Model with clusters
 model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           AcceptedByOriginator +
@@ -99,10 +636,10 @@ model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
                           CommentCount +
                           start_UX +
                           weekday +
-                          Autobiographer +
-                          year +
-                          tenure +
-                          TagCluster +
+                          # Autobiographer +
+                          # year +
+                          # tenure +
+                          # TagCluster +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt_tags, robust = TRUE)
 
 summary(model_pwp_gt_00)

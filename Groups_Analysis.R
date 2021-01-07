@@ -67,24 +67,27 @@ hc <- hclust(UserTagDis, "ward.D")
 
 require(cluster)
 
-# # Use map_dbl to run many models with varying value of k
-# sil_width <- map_dbl(seq(5000, 6500, by=10),  function(k){
-#   sil <- silhouette(cutree(hc, k=k), UserTagDis)
-#   model <- summary(sil)
-#   model$avg.width
-# })
-# 
-# 
-# # Generate a data frame containing both k and sil_width
-# sil_df <- data.frame(
-#   k = seq(5000, 6500, by=10),
-#   sil_width = sil_width
-# )
-# 
-# # Plot the relationship between k and sil_width
-# ggplot(sil_df, aes(x = k, y = sil_width)) +
-#   geom_line() +
-#   scale_x_continuous(breaks = seq(5000, 6500, by=10))
+# Use map_dbl to run many models with varying value of k
+sil_width <- map_dbl(seq(2, 8000, by=1000),  function(k){
+  sil <- silhouette(cutree(hc, k=k), UserTagDis)
+  model <- summary(sil)
+  model$avg.width
+})
+
+
+# Generate a data frame containing both k and sil_width
+sil_df <- data.frame(
+  k = seq(2, 8000, by=1000),
+  sil_width = sil_width
+)
+
+# Plot the relationship between k and sil_width
+ggplot(sil_df, aes(x = k, y = sil_width)) +
+  geom_line(colour = "blue", size = 1) +
+  scale_x_continuous(breaks = seq(2, 8000, by=1000)) +
+  ggtitle("Optimal number of clusters") +
+  xlab("Number of clusters k") + ylab("Average silhouette width")
+  
 
 # Silhouette with k= 5650 with all the tags - sil avg 0.3192589
 # Max silhouette with k = 5100 with top tags 100 - sil avg 0.4098277

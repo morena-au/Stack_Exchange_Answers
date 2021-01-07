@@ -64,7 +64,7 @@ data_str_tr_tt <- subset(data_str_all_tt, event <= 4)
 write.csv(data_str_tr_tt, "data_str_tr_tt.csv", row.names = FALSE)
 
 # DESCRIPTIVE 
-data_str_tr_tt <- read.csv("data_str_tr_tt_00_06.csv", stringsAsFactors = FALSE)
+data_str_tr_tt <- read.csv("data_str_tr_tt.csv", stringsAsFactors = FALSE)
 data_str_tr_tt$event <- factor(data_str_tr_tt$event)
 data_str_tr_tt$status <- factor(data_str_tr_tt$status)
 data_str_tr_tt$TimeBetweenAnswer <- data_str_tr_tt$tstop - data_str_tr_tt$tstart
@@ -85,24 +85,19 @@ for (i in unique(data_str_tr_tt$event)) {
     tally(AcceptedByOriginator))
 }
 
-data_str_tr_tt%>%
-  summarise(round(mean(AcceptedByOriginator), 3), 
-            round(median(AcceptedByOriginator), 3), 
-            round(sd(AcceptedByOriginator), 3))
-
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
     group_by(status)%>%
-    summarise(median(AcceptedByOriginator),sd(AcceptedByOriginator)))
+    summarise(round(mean(AcceptedByOriginator),3), median(AcceptedByOriginator),sd(AcceptedByOriginator)))
   print("===============================================")
 }
 
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
-  print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print(pairwise.wilcox.test(event$AcceptedByOriginator, event$status, p.adjust.method="none"))
+  # print(pairwise.wilcox.test(event$AcceptedByOriginator, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -114,16 +109,11 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(EditCount))
 }
 
-data_str_tr_tt%>%
-  summarise(round(mean(EditCount), 3), 
-            round(median(EditCount), 3), 
-            round(sd(EditCount), 3))
-
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
           group_by(status)%>%
-          summarise(median(EditCount),sd(EditCount)))
+          summarise(round(mean(EditCount),3), median(EditCount),sd(EditCount)))
   print("===============================================")
 }
 
@@ -131,7 +121,7 @@ for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
   print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -142,16 +132,11 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(UpMod))
 }
 
-data_str_tr_tt%>%
-  summarise(round(mean(UpMod), 3), 
-            round(median(UpMod), 3), 
-            round(sd(UpMod), 3))
-
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
           group_by(status)%>%
-          summarise(median(UpMod),sd(UpMod)))
+          summarise(round(mean(UpMod),3), median(UpMod),sd(UpMod)))
   print("===============================================")
 }
 
@@ -159,7 +144,7 @@ for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
   print(pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -170,16 +155,11 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(DownMod))
 }
 
-data_str_tr_tt%>%
-  summarise(round(mean(DownMod), 3), 
-            round(median(DownMod), 3), 
-            round(sd(DownMod), 3))
-
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
           group_by(status)%>%
-          summarise(median(DownMod),sd(DownMod)))
+          summarise(round(mean(DownMod),3), median(DownMod),sd(DownMod)))
   print("===============================================")
 }
 
@@ -187,7 +167,7 @@ for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
   print(pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -198,16 +178,12 @@ for (i in unique(data_str_tr_tt$event)) {
           tally(CommentCount))
 }
 
-data_str_tr_tt%>%
-  summarise(round(mean(CommentCount), 3), 
-            round(median(CommentCount), 3), 
-            round(sd(CommentCount), 3))
 
 for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_tt, event == i) %>%
           group_by(status)%>%
-          summarise(mean(CommentCount),sd(CommentCount)))
+          summarise(round(mean(CommentCount),3), median(CommentCount),sd(CommentCount)))
   print("===============================================")
 }
 
@@ -215,6 +191,6 @@ for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
   print(pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
   print("===============================================")
 }

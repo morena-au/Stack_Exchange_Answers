@@ -63,7 +63,7 @@ data_str_tr_gt <- subset(data_str_all_gt, event <= 4)
 # Save the file
 write.csv(data_str_tr_gt, "data_str_tr_gt.csv", row.names = FALSE)
 
-# TODO DESCRIPTIVE STATS
+# DESCRIPTIVE STATS
 setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data")
 data_str_tr_gt <- read.csv("data_str_tr_gt.csv", stringsAsFactors = FALSE)
 data_str_tr_gt$event <- factor(data_str_tr_gt$event)
@@ -88,6 +88,7 @@ for (i in unique(data_str_tr_gt$event)) {
           tally())
 }
 
+# Time between answers in days
 for (i in unique(data_str_tr_gt$event)) {
   print(subset(data_str_tr_gt, event == i) %>%
     group_by(AcceptedByOriginator)%>%
@@ -103,23 +104,57 @@ for (i in unique(data_str_tr_gt$event)) {
   print(pairwise.wilcox.test(event$TimeBetweenAnswer, event$AcceptedByOriginator, exact = FALSE))
 }
 
+# Time count of censured across accepted answers
+for (i in unique(data_str_tr_gt$event)) {
+  event <- subset(data_str_tr_gt, event == i) %>%
+    group_by(AcceptedByOriginator, status) %>%
+    tally()
+  
+  # Calculate the totals by column
+  total <- aggregate(event$n, by=list(Status = event$status), FUN = sum)
+  total <- matrix(c(total$x), nrow = 1, ncol = 2, byrow = TRUE)
+  
+  if (length(event$n) == 2) {
+      event <- matrix(c(event$n, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+    } else {
+      event <- matrix(c(event$n), nrow = 2, ncol = 2, byrow = TRUE)
+  }
+  
+  print(paste("EVENT ", i))
+  print(event)
+
+  event_prop <- matrix(c(0, 0, 0, 0), nrow = 2, ncol = 2, byrow = TRUE)
+  
+  event_prop[,1] <- round((event[,1]/total[,1])*100, 2)
+  event_prop[,2] <- round((event[,2]/total[,2])*100, 2)
+  
+  print("Observed Proportions")
+  print(event_prop)
+  
+  
+  print("Chi-squared Test")
+  if (i != 1) { # because it is not possible to calculate it 
+    print(chisq.test(event))
+  }
+  
+  print("#################################")
+}
+
+
 # - "EditCount" 
-# Base Information
+# Base Information table
+
 for (i in unique(data_str_tr_gt$event)) {
   print(subset(data_str_tr_gt, event == i) %>%
           tally(EditCount))
 }
 
-data_str_tr_gt%>%
-  summarise(round(mean(EditCount), 3), 
-            round(median(EditCount), 3), 
-            round(sd(EditCount), 3))
-
+# Numerical descriptive table 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
           group_by(status)%>%
-          summarise(median(EditCount),sd(EditCount)))
+          summarise(round(mean(EditCount),3), median(EditCount),sd(EditCount)))
   print("===============================================")
 }
 
@@ -127,7 +162,7 @@ for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_gt, event == i)
   print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  #print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -138,16 +173,12 @@ for (i in unique(data_str_tr_gt$event)) {
           tally(UpMod))
 }
 
-data_str_tr_gt%>%
-  summarise(round(mean(UpMod), 3), 
-            round(median(UpMod), 3), 
-            round(sd(UpMod), 3))
 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
           group_by(status)%>%
-          summarise(median(UpMod),sd(UpMod)))
+          summarise(round(mean(UpMod), 3), median(UpMod),sd(UpMod)))
   print("===============================================")
 }
 
@@ -155,7 +186,7 @@ for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_gt, event == i)
   print(pairwise.wilcox.test(event$UpMod, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$UpMod, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -167,16 +198,12 @@ for (i in unique(data_str_tr_gt$event)) {
           tally(DownMod))
 }
 
-data_str_tr_gt%>%
-  summarise(round(mean(DownMod), 3), 
-            round(median(DownMod), 3), 
-            round(sd(DownMod), 3))
 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
           group_by(status)%>%
-          summarise(mean(DownMod),sd(DownMod)))
+          summarise(round(mean(DownMod), 3), median(DownMod),sd(DownMod)))
   print("===============================================")
 }
 
@@ -184,7 +211,7 @@ for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_gt, event == i)
   print(pairwise.wilcox.test(event$DownMod, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$DownMod, event$status, exact = FALSE))
   print("===============================================")
 }
 
@@ -195,17 +222,12 @@ for (i in unique(data_str_tr_gt$event)) {
           tally(CommentCount))
 }
 
-data_str_tr_gt%>%
-  summarise(round(mean(CommentCount), 3), 
-            round(median(CommentCount), 3), 
-            round(sd(CommentCount), 3))
-
 
 for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   print(subset(data_str_tr_gt, event == i) %>%
           group_by(status)%>%
-          summarise(mean(CommentCount),sd(CommentCount)))
+          summarise(round(mean(CommentCount), 3), median(CommentCount),sd(CommentCount)))
   print("===============================================")
 }
 
@@ -213,7 +235,7 @@ for (i in unique(data_str_tr_gt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_gt, event == i)
   print(pairwise.wilcox.test(event$CommentCount, event$status, p.adjust.method="none"))
-  print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
+  # print(pairwise.wilcox.test(event$CommentCount, event$status, exact = FALSE))
   print("===============================================")
 }
 
