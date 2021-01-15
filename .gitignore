@@ -2,6 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-data/old/*
-data/raw/*
+data/*
 Answers.Rproj
