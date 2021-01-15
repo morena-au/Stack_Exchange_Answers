@@ -4,3 +4,5 @@
 .Ruserdata
 data/*
 Answers.Rproj
+requirements.txt
+__pycache__/
