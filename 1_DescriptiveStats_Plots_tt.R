@@ -121,9 +121,10 @@ for (i in unique(data_str_tr_tt$event)) {
   print(paste("Event", i))
   event <- subset(data_str_tr_tt, event == i)
   print(pairwise.wilcox.test(event$EditCount, event$status, p.adjust.method="none"))
-  # print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
+  print(pairwise.wilcox.test(event$EditCount, event$status, exact = FALSE))
   print("===============================================")
 }
+
 
 # - "UpMod"    
 

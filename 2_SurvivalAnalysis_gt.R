@@ -9,51 +9,88 @@ tdm <- read.csv("tdm_all.csv", stringsAsFactors = FALSE)
 silhouette_df <- read.csv("silhouette_df_all.csv", stringsAsFactors = FALSE)
 cluster_df <- as.data.frame(table(data_str_tr_gt_tags$TagCluster))
 
-# adjust for data_str_gt variables
-data_str_tr_gt$weekday <- ifelse(data_str_tr_gt$day %in% c("Monday", "Tuesday", 
-                                                           "Wednesday", "Thursday", 
-                                                           "Friday"), 1, 0)
-data_str_tr_gt$day <- NULL
+# write reputation urls calls 
+reputation <- as.data.frame(paste0('https://ux.stackexchange.com/users/', unique(data_str_tr_gt$OwnerUserId),
+                     '?tab=reputation&sort=post&page=1'))
+colnames(reputation) <- 'url'
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/old/Reputation")
+write.csv(reputation, "./reputation.csv", row.names = FALSE)
 
-data_str_tr_gt <- data_str_tr_gt[ , -which(names(data_str_tr_gt) %in% c("QuestionTag"))]
+# # adjust for data_str_gt variables
+# data_str_tr_gt$weekday <- ifelse(data_str_tr_gt$day %in% c("Monday", "Tuesday", 
+#                                                            "Wednesday", "Thursday", 
+#                                                            "Friday"), 1, 0)
+# data_str_tr_gt$day <- NULL
+# 
+# data_str_tr_gt <- data_str_tr_gt[ , -which(names(data_str_tr_gt) %in% c("QuestionTag"))]
+# 
+# # Did the user received the autobiographer badge before answering the first question
+# # shows how committed users are within the platform (use as advertisement tools)
+# 
+# # Add badges information
+# Badges <- read.csv(file="./raw/Badges.csv",stringsAsFactors=FALSE)
+# keep <- c("UserId", "Name", "Date") 
+# 
+# Badges <- Badges[keep]
+# Badges <- subset(Badges, Name == "Autobiographer")
+# 
+# colnames(Badges)[3] <- "AutobiographerDate"
+# 
+# data_str_tr_gt <- merge(data_str_tr_gt, Badges[, c("UserId", "AutobiographerDate")], 
+#                       by.x = "OwnerUserId", by.y = "UserId", all.x = TRUE)
+# 
+# first_event <- data_str_tr_gt %>%
+#   filter(event == 1) %>%
+#   select(OwnerUserId, event, CreationDate, AutobiographerDate)
+# 
+# # Format date
+# first_event$CreationDate <- as.POSIXct(first_event$CreationDate, 
+#                                        format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+# 
+# first_event$AutobiographerDate <- as.POSIXct(first_event$AutobiographerDate, 
+#                                              format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+# 
+# # if the user completed the autobiography before answering the first question
+# first_event$Autobiographer <- ifelse(first_event$AutobiographerDate < 
+#                                        first_event$CreationDate, 1, 0 )
+# 
+# first_event$Autobiographer <- ifelse(is.na(first_event$Autobiographer), 0, 
+#                                      first_event$Autobiographer) 
+# 
+# data_str_tr_gt <- merge(data_str_tr_gt, first_event[, c("OwnerUserId", "Autobiographer")], 
+#                         by = "OwnerUserId", all.x = TRUE)
+# 
+# data_str_tr_gt$AutobiographerDate <- NULL
+# 
+# # Save the file
+# write.csv(data_str_tr_gt, "data_str_tr_gt.csv", row.names = FALSE)
 
-# Did the user received the autobiographer badge before answering the first question
-# shows how committed users are within the platform (use as advertisement tools)
+# add reputation 
+setwd("C:/Projects/Stack_Exchange/motivation_feedback/Answers/data/raw")
+reputation <- read.csv("Reputation.csv", stringsAsFactors = FALSE) 
 
-# Add badges information
-Badges <- read.csv(file="./raw/Badges.csv",stringsAsFactors=FALSE)
-keep <- c("UserId", "Name", "Date") 
+# time formatting
+reputation$time_UTC <- as.POSIXct(substr(reputation$time_UTC,1,nchar(reputation$time_UTC)-1), 
+                                         format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 
-Badges <- Badges[keep]
-Badges <- subset(Badges, Name == "Autobiographer")
+# Calculate totRep until CreationTime
+reputation_df <- merge(data_str_tr_gt[,c("OwnerUserId", "Id", "CreationDate")], reputation, 
+      by = "OwnerUserId", all.x = TRUE)
+    
+      
+reputation_sum <- reputation_df %>%
+  group_by(Id) %>%
+  summarize(TotRep = sum(reputation[time_UTC <= CreationDate]))
 
-colnames(Badges)[3] <- "AutobiographerDate"
+# add 1 reputation points to all. 
+# 1 point is given as default when you register 
+reputation_sum$TotRep <- ifelse(is.na(reputation_sum$TotRep), 0, reputation_sum$TotRep)
+reputation_sum$TotRep <- reputation_sum$TotRep + 1
 
-data_str_tr_gt <- merge(data_str_tr_gt, Badges[, c("UserId", "AutobiographerDate")], 
-                      by.x = "OwnerUserId", by.y = "UserId", all.x = TRUE)
+# Merge
+data_str_tr_gt <- merge(data_str_tr_gt, reputation_sum, 
+                        by = "Id", all.x = TRUE)
 
-first_event <- data_str_tr_gt %>%
-  filter(event == 1) %>%
-  select(OwnerUserId, event, CreationDate, AutobiographerDate)
-
-# Format date
-first_event$CreationDate <- as.POSIXct(first_event$CreationDate, 
-                                       format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-
-first_event$AutobiographerDate <- as.POSIXct(first_event$AutobiographerDate, 
-                                             format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-
-# if the user completed the autobiography before answering the first question
-first_event$Autobiographer <- ifelse(first_event$AutobiographerDate < 
-                                       first_event$CreationDate, 1, 0 )
-
-first_event$Autobiographer <- ifelse(is.na(first_event$Autobiographer), 0, 
-                                     first_event$Autobiographer) 
-
-data_str_tr_gt <- merge(data_str_tr_gt, first_event[, c("OwnerUserId", "Autobiographer")], 
-                        by = "OwnerUserId", all.x = TRUE)
-
-data_str_tr_gt$AutobiographerDate <- NULL
 
 # Adjust the variables
 data_str_tr_gt$year <- factor(data_str_tr_gt$year) # year the answer was asked
@@ -62,6 +99,15 @@ data_str_tr_gt$start_UX <- factor(data_str_tr_gt$start_UX) # the contributor joi
 data_str_tr_gt$weekday <- factor(data_str_tr_gt$weekday) # contributor posted during weekdays or weekends
 data_str_tr_gt$Autobiographer <- factor(data_str_tr_gt$Autobiographer)
 data_str_tr_gt$AcceptedByOriginator <- factor(data_str_tr_gt$AcceptedByOriginator)
+
+# Create tenure within the UX and tenure with SE (year when first join SE independently 
+# from the community)
+
+data_str_tr_gt$tenure_UX <- substring(data_str_tr_gt$UX_registration, 1, 4)
+data_str_tr_gt$tenure_UX <- as.numeric(data_str_tr_gt$tenure_UX)
+
+data_str_tr_gt$tenure_SE <- substring(data_str_tr_gt$SE_registration, 1, 4)
+data_str_tr_gt$tenure_SE <- as.numeric(data_str_tr_gt$tenure_SE)
 
 # DESCRIPTIVE 
 
@@ -261,16 +307,18 @@ for (i in 1:4) {
 
 # gt model
 model_pwp_gt_00 = coxph(Surv(tstop-tstart,status) ~
-                          AcceptedByOriginator +
-                          EditCount +
                           UpMod +
                           DownMod +
+                          AcceptedByOriginator +
+                          EditCount +
                           CommentCount +
                           start_UX +
-                          weekday +
                           Autobiographer +
                           year +
-                          tenure +
+                          tenure_UX +
+                          tenure_SE +
+                          weekday +
+                          TotRep +
                           cluster(OwnerUserId) + strata(event), method="breslow", data=data_str_tr_gt, robust = TRUE)
 
 summary(model_pwp_gt_00)
