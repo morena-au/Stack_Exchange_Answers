@@ -5,3 +5,5 @@
 Answers.Rproj
 requirements.txt
 __pycache__/
+data/old/*
+data/raw/*
