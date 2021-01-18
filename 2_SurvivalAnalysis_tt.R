@@ -117,7 +117,7 @@ model_pwp_tt_00 = coxph(Surv(tstart, tstop, status) ~
                           AcceptedByOriginator +
                           EditCount +
                           CommentCount +
-                          start_UX +
+                          # start_UX +
                           Autobiographer +
                           year +
                           tenure_UX +
