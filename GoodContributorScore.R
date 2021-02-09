@@ -329,7 +329,7 @@ data_str_tr$mockups <- data_str_tr$ImgCount + data_str_tr$CodeCount
 
 
 # 4. Correct grammar + update current dictionary
-
+## PS.: step no needed in the LanguageTool in python
 # check for spelling
 # remove email address and external links from WithoutHTML
 for (i in seq(nrow(data_str_tr))) {
@@ -542,7 +542,7 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                     "WERE_VBB", "VBZ_VBD")))
                                             
 
-bar = subset(data_str_tr, Id == 85587)
+bar = subset(data_str_tr, Id == 84594)
 bar$body
 bar$WithoutHTML
 substr(bar$WithoutHTML, 20, 40)
@@ -551,13 +551,85 @@ subset(incorrect_dict, Id == 24673)
 
 
 
-category <- subset(grammar_spelling_analysis, category == "MISC")
+category <- subset(grammar_spelling_analysis, category == "GRAMMAR")
 #ruleIssueType <- subset(category, ruleIssueType == 'misspelling')
 unique(category$ruleId)
-ruleId <- subset(category, ruleId == "EN_WORD_COHERENCY")
+ruleId <- subset(category, ruleId ==  )
 unique(ruleId$message)
 
+# "LINE_COMPOUNDS" "CONDITIONAL_CLAUSE" "PRP_RB_JJ" "DOES_X_HAS" "AND_END" "RELY_ON" "A_UNCOUNTABLE"
+# "THERE_MISSING_VERB" "BREAKER_COMPOUNDS" "SUPPOSE_TO" "A_BIT" "CD_NN" "LIFE_COMPOUNDS" "MORE_A_JJ"
+# "SINGULAR_VERB_AFTER_THESE_OR_THOSE" "EXPLAIN_TO" "A_LOT_OF_NN" "MANY_NN_U" "THERE_WAS_MANY"
+# "SINGULAR_AGREEMENT_SENT_START" "IN_THE_MEAN_TIME_PHRASE" "IN_TERM_OF_PHRASE" "SIGN_INTO"
+# "PRP_PAST_PART" "ALLOW_TO_DO" "COUNTER_COMPOUNDS" "DID_BASEFORM" "PROGRESSIVE_VERBS" "PEOPLE_VBZ"
+# "THE_MOST"  "HOMO_SAPIENS" "TO_RB_TO_VB" "UP_COMPOUNDS"  "PRP_HAVES"  "BOTH_AS_WELL_AS"
+# "DID_FOUND_AMBIGUOUS" "DOES_NP_VBZ" "WHAT_IS_YOU"  "SUPERIOR_THAN_TO" "THE_ARE"  "PRP_DON"
+# "BASE_FORM" "ONE_PLURAL" "ON_COMPOUNDS" "HAPPY_EASTER" "DID_PAST" "MISSING_ARTICLE" "NOTE_COMPOUNDS"
+# "SOME_NN_VBP" "GAMEBOY" "HE_NEED" "I_MA" "IN_WEEKDAY" "BE_VBP_IN"   "AFFORD_VB" "IF_THERE"
+# "AGREEMENT_SENT_START_2" "EQUALLY_AS"   "PRP_FOND" "BACK_COMPOUNDS" "THE_BEST_WAY"  "CROSS_COMPOUNDS"
+# "OUT_COMPOUNDS" "PRP_RB_NO_VB" "BE_IS" "HAD_VBP" "ROOM_COMPOUNDS" "ALLOW_TO" "BE_NO_VB" "BE_NO_VB"
+# "A_BIT_OF" "SPLITTED"  "ON_FIRST_GLANCE" "AN_ANOTHER" "SUPERLATIVE_THAN" "CAUSE_BECAUSE "DIE_DICE"
+# "EYE_COMPOUNDS" "HOW_DO_I_VB" "STRIKED" "THANK_FULL" "TWO_CONNECTED_MODAL_VERBS" "IS_VBZ" "THERE_AFTER"
+# "MATE_COMPOUNDS" "BE_TO_VBG" "MANY_TIME" "PROOF_COMPOUNDS" "FURTHER_MORE_COMPOUND" "HARDWARES"
+# "THESE_ONES" "IT_ITS" "AS_ADJ_AS" "DOESENT" "TAKEAWAY" "SHORT_COMPARATIVES"  "REGARDING_TO"
+# "HEAD_COMPOUNDS" "DO_HE_VERB" "DETERMINER_GEOGRAPHICAL_WORD"  "ABLE_VBP" "WORK_AROUND_COMPOUND"
+# "DOWN_COMPOUNDS"  "WOULD_BE_JJ_VB" "POSSESSIVE_CASE" "WHAT_TO_VBD"  "TOO_EITHER" "DT_RB_IN" 
+# "THIS_NNS_VB"  "SHIP_COMPOUNDS" "PRP_NO_VB" THE_EXACTLY_THE "BELIVE_BELIEVE" "MOST_SUPERLATIVE"
+# "THIS_TOOLS" "I_NOT_JJ" "DO_VBZ" "BE_INTEREST_IN", "AN_VB_PRP" (with mistakes)
 
+
+"PRP_MD_NN",  "THE_PUNCT",  "COLLECTIVE_NOUN_VERB_AGREEMENT_VBP", "APPLE_PRODUCTS", "WORD_ESSAY_HYPHEN", 
+"OBJECTIVE_CASE", "RUNNER_UP_HYPHEN", "MUST_HAVE","PRP_THE", "TOO_ADJECTIVE_TO", "STEP_BY_STEP_HYPHEN", 
+"THE_IT",  "DT_JJ_NO_NOUN", "GO_TO_HYPHEN", "POKEMON", "NO_GO_HYPHEN", "A_THANK_YOU", "WEEK_LONG_HYPHEN", 
+"OPT_IN_HYPHEN",  "CALL_TO_ACTION_HYPHEN", "MARKDOWN_NNP", "CA_BRAND_NEW", "HAVE_TWITTER", "TOP_DOWN_HYPHEN", 
+"OPEN_OFFICE", "SET_TOP_BOX_HYPHEN", "ADVERB_OR_HYPHENATED_ADJECTIVE", "MONEY_BACK_HYPHEN", "THE_HOT_DOG", 
+"SOON_TO_BE_HYPHEN", "HIGH_END_HYPHEN",  "THOUGH_THOUGHT",  "CLEAR_CUT_HYPHEN", "THE_NN_AND_THE_NN", 
+"ARTICLE_ADJECTIVE_OF", "MUST_BE_DO", "MISSING_NOUN", "YEAR_HYPHEN", "MISSING_PAST_TENSE", "SO_CALLED_HYPHEN", 
+"AN_ARE", "A_COLLECTIVE_OF_NN", "NEEDNT_TO_DO_AND_DONT_NEED_DO", "CATCH_ALL_HYPHEN", "MUCH_NEEDED_HYPHEN" 
+"DAY_TO_DAY_HYPHEN", "PROBLEM_SOLVE_HYPHEN", "HAD_TOO"
+
+
+# "GRAMMAR": "CA_FOLLOW_UP" "MD_BASEFORM" "DOSNT" "THERE_S_MANY" "IT_VBZ" "MOST_COMPARATIVE"
+#            "TWITTER" "HAVE_PART_AGREEMENT" "A_NNS" "ON_SKYPE" "ADMIT_ENJOY_VB"(some errors)
+#            "PLURAL_VERB_AFTER_THIS" "HOLDER_COMPOUNDS" "PERS_PRONOUN_AGREEMENT" "IN_WHO"
+#            "MCDONALDS" "MISSING_TO_BEFORE_A_VERB"(some errors) "HE_VERB_AGR" "MOST_SOME_OF_NNS"
+#            "ADVISE_VBG" "WILL_BASED_ON" "BEEN_PART_AGREEMENT" "BUILT_IN_HYPHEN" "WAY_COMPOUNDS"
+#            "DT_DT" "NON3PRS_VERB" "THE_THEY" "DEPEND_ON" "MOST_OF_THE_TIMES" "IF_VB_PCT"
+#            "ALL_NN" "MICROSOFT_PRODUCTS" "HE_D_VBD" "THERE_VBP_NN" "EVERY_EACH_SINGULAR"
+#            "THE_SAME_AS" "THIS_MISSING_VERB" "MAN_COMPOUNDS" "FEWER_LESS" "A_GOOGLE"
+#            "PRP_HAVE_VB" "BUNCH_OF" "PLACE_COMPOUNDS" "AFTERMARKET" "MD_BE_NON_VBP"
+#            "A_INFORMATION" "PRP_VBG" "THE_WORSE_OF" "EVER_NN" "PRINT_COMPOUNDS"
+#            "ACCORDING_TO_ME" "KIND_OF_A" "HOUSE_COMPOUNDS" "COMP_THAN" "WOLD_WOULD"
+#            "ALL_MOST_SOME_OF_NOUN" "AM_I" "SOME_FACULTY" "YOUR_RE" "THEIR_S" "U_RE"
+#            "MANY_NN" "AGREEMENT_SENT_START"  "AUXILIARY_DO_WITH_INCORRECT_VERB_FORM"
+#            "LOTS_OF_NN" "THIS_NNS" "NON_ACTION_CONTINUOUS" "DOUBLE_NEGATIVE" "COPY_PASTE"
+#            "AFFORD_VBG" "AFFORD_VBG" "THERE_RE_MANY" "A_RB_NN" "RELATIVE_CLAUSE_AGREEMENT"
+#             "TO_NON_BASE" "YOU_TUBE" "SOFTWARES" "NEITHER_NOR"  "MUCH_COUNTABLE" "OVER_COMPOUNDS"
+
+
+grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
+                                    !(ruleId %in% c("MISSING_TO_BETWEEN_BE_AND_VB", 
+                                                    "A_ATTACH", "THE_SUPERLATIVE", 
+                                                    "ADVERB_VERB_ADVERB_REPETITION", 
+                                                    "STARS_AND_STEPS", "THE_SENT_END", 
+                                                    "NODT_DOZEN", "TO_DO_HYPHEN", 
+                                                    "IF_WOULD_HAVE_VBN", 
+                                                    "PHRASE_REPETITION", # repetitions sometimes are used as an example
+                                                    "SHOULD_BE_DO", "DOUBLE_HYPHEN", 
+                                                    "MASS_AGREEMENT", 
+                                                    "A_INSTALL", "PREPOSITION_VERB",
+                                                    "EACH_EVERY_NNS", "A_TO", "ON_EXCEL", 
+                                                    "MAKE_UP","USE_TO_VERB", "SUBJECT_MATTER_HYPHEN", 
+                                                    "LOGGED_IN_HYPHEN", "CLICK_HYPHEN",  "GOOGLE_PRODUCTS"
+                                                    )))
+                                                    
+                                                    
+                                                    
+bar = subset(data_str_tr, Id == 29994)
+bar$body
+bar$WithoutHTML
+substr(bar$WithoutHTML, 30, 90)
+# subset(incorrect_dict, Id == 24673)
 
 # we don't consider errors the following 
 grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
@@ -570,7 +642,24 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                     "YOUTUBE", "LC_AFTER_PERIOD", 
                                                     "THE_FRENCH", "GITHUB", "WORDPRESS", 
                                                     "ENGLISH_WORD_REPEAT_RULE", 
-                                                    "EN_WORD_COHERENCY")))
+                                                    "EN_WORD_COHERENCY", "RED_READ", 
+                                                    "NO_KNOW", "LOG_IN", 
+                                                    "TO_TWO", "EVERYDAY_EVERY_DAY", 
+                                                    "IS_US", "VBG_THEYRE", 
+                                                    "LOOK_WATCH", "WERE_WHERE", 
+                                                    "CONFUSION_DUE_DO", 
+                                                    "PERSONAL_PERSONNEL", "BY_BUY", 
+                                                    "ECONOMICAL_ECONOMIC", 
+                                                    "A_INFINITIVE", # grammar
+                                                    "DT_PRP", # due to deleting html formatting 
+                                                    "SENTENCE_FRAGMENT",
+                                                    "PRP_VB", "ADVERB_WORD_ORDER", 
+                                                    "SIMPLE_TO_USE_HYPHEN", 
+                                                    "PRP_JJ", "FACTOR_HYPHEN", 
+                                                    "COLLECTIVE_NOUN_VERB_AGREEMENT_VBD", 
+                                                    "DOUBLE_CLICK_HYPHEN", 
+                                                    "ANYMORE_ADVERB", "NEWS_COMPOUNDS", 
+                                                    "A_WINDOWS")))
 
 
 # KEEPT: 
@@ -595,6 +684,54 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
 # COMPOUNDING: "CHECK_BOX_COMPOUND" "SIGN_UP_HYPHEN" "ROLL_OUT_HYPHEN"
 # CASING: "EN_SPECIFIC_CASE"
 # MISC: "EN_A_VS_AN" "EN_COMPOUNDS"
+# "CONFUSED_WORDS": "LESS_MORE_THEN" "DOSE_DOES" "TO_TOO" (some mistakes) "INSURE_THAT" "COMMA_THAN" (some mistakes)
+#                   "KNOW_NOW" (some mistakes) "MAY_MANY" "THERE_THEIR" "DO_TO" "THERE_OWN"  "YOUR_NN" "LOSE_LOSS"
+#                   "TOO_TO" "NO_NOT" "THE_LATER_LATTER" "YOUR" "SOMETIME_SOMETIMES" "ASK_WETHER" "THEY_WHERE"
+#                   "AND_THAN" "TAT" "ARCHITECT_VERB" "AFFECT_EFFECT" "YO_TO" "CONFUSION_OF_MANS_MEN" "CLEAN_UP"
+#                   "RATHER_THEN" "ADJECTIVE_ADVERB" "THE_THEM" "THEIR_IS" "CALENDER" "AN_AND" "INTENT_INTEND"
+#                   "COULD_OF" "ASSES_ASSESS" "DELIVERY_DELIVER" "THING_THINK" "IN_PRINCIPAL" "THAT_THAN"
+#                   "WORK_AS_A_CHARM" "DEPENDENT" "WHAT_IT_HAPPENING" "FORE_FOR" "TRAIL_TRIAL" "PRECEDENT_PRECEDENCE"
+#                   "BACK_IN_FORTH" "TROUGH_THROUGH" "IT_SEAMS" "GIVE_ADVISE" "ANS_AND" "CONFUSION_OF_SATE_STATE"
+#                   "QUIET_QUITE" "BESIDES_BESIDE" "WAN_WANT" "WHAT_IT_THE" "ADVICE_ADVISE" "BLU_RAY" "MAY_MANY_MY"
+
+
+# Convenience function to convert html codes
+html2txt <- function(str) {
+xpathApply(htmlParse(str, asText=TRUE),
+                "//body//text()", 
+                xmlValue)
+}
+
+
+
+# Initialize the dataframe and the row count
+original_text <- data.frame(Id = as.numeric(),
+                             content = as.character(),
+                             stringsAsFactors=FALSE)
+row = 1
+
+
+for (i in seq(nrow(data_str_tr))) {
+  if (!is.na(data_str_tr$body[i])) {
+    
+    text <- html2txt(data_str_tr$body[i])
+      
+    for (n in seq(length(text))) {
+      original_text[row, 1] <- data_str_tr$Id[i]
+      original_text[row, 2] <- text[n]
+      row = row + 1
+    }
+  }
+}
+
+write.csv(original_text,
+          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/original_text.csv",
+          fileEncoding ="UTF-8",
+          row.names = FALSE)
+
+
+
+# run languagetool again and check the difference
 
 # TODO <code>
 foo <- subset(data_str_tr, Id=="28698")
