@@ -125,7 +125,6 @@ PostHistory <- merge(PostHistory, PostHistoryTypes,
                      by.x = "PostHistoryTypeId", by.y = "Id", all.x = TRUE)
 rm(PostHistoryTypes)
 
-# Keep only Edit Body
 colnames(PostHistory)[3] <- "EditDate"
 
 tmp_history <- data_str_all %>%
@@ -152,7 +151,7 @@ EditCount_df <- data.frame(Id = as.numeric(),
 row = 1
 
 # 1. For all the users
-for (i in unique(tmp_history$OwnerUserId)) {
+for (i in  seq(nrow(data_str_tr))) {
   tmp <- subset(tmp_history, OwnerUserId == i)
   tmp <- tmp %>% arrange(CreationDate)
   post_id <- unique(tmp$Id)
@@ -170,6 +169,7 @@ for (i in unique(tmp_history$OwnerUserId)) {
       EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == post_id[[n]]]) > 
                                     (tmp$EditDate[tmp$Id == post_id[[n-1]]]) & 
                                     (tmp$UserId[tmp$Id == post_id[[n-1]]] != i) &
+                                    # Keep only Edit Body
                                     (tmp$PostHistoryTypeId[tmp$Id == post_id[[n-1]]] == 5))
       row = row + 1
     }

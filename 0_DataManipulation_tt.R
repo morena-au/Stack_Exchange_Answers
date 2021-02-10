@@ -164,6 +164,7 @@ for (i in unique(tmp_history$OwnerUserId)) {
     # Store the result in the dataframe
     EditCount_df[row, 1] <- n
     EditCount_df[row, 2] <- sum(unique(tmp$CreationDate[tmp$Id == n]) > tmp$EditDate &
+                                  # Keep only Edit Body
                                   tmp$PostHistoryTypeId == 5 & tmp$UserId != tmp$OwnerUserId)
     row = row + 1
   }
