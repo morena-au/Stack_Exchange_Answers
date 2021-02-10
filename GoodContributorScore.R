@@ -4,38 +4,13 @@ library(tidyr)
 library(stringr)
 library(hunspell)
 library(textutils)
+library(XML)
 
 # Import file
 
 setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data")
 data_str_tr <- read.csv("data_str_tr_04_gt_ft.csv", stringsAsFactors = FALSE)
 
-# ** BACKGROUND INFORMATION **
-# Would good contributors (in terms of their ability and motivations)
-# continue to contribute independently from the feedback received?
-# Exploit the serendipitous variation in the dataset.
-# Those unexpected patterns, such as a good contributor that gets a negative 
-# feedback/no feedback and continue to contribute nevertheless (reducing selection bias). 
-# 
-# The problem could be narrowed down in identifying good contributors (and vice versa)
-# through the scoring of the following aspects 
-# (possibly calculating them on the first answer given and on the Initial Body):
-#   
-# -	Changes the author made on their own answers (details added - further research in the topic)
-# -	Answer given on their own question (even if they didn't get the answer they were looking 
-#                                     for they come back to the website to share the newly acquire 
-#                                     knowledge for future users)
-# -	Link to external resources + context (informed referenced answer)
-# -	Screenshots, mock-ups provided
-# •	Correct grammar 
-# •	Reputation (asked multiple answers and now it is time to give back at the community)
-
-# •	Greetings, exclamation marks, question marks, etc.. (signs of poor answer)
-# •	Answer was flag as offensive, duplicate, etc.. Or deleted due to malpractice 
-#   Which hopefully could help us in identifying the following:
-#     o	Lack of full/comprehensive explanation
-#     o	Lack of focus and clarity 
-#     o	Opinions/discussion based answers
 
 # Deduce good contributors by the first answer's characteristics
 data_str_tr <- subset(data_str_tr, event == 1)
@@ -149,14 +124,17 @@ data_str_tr <- merge(data_str_tr, revisions_info[, c("post_id", "body")],
                      by.x = "Id", by.y = "post_id", all.x = TRUE)
 
 # missing body due to the answer being deleted
-rm(revisions_info)
+rm(revisions_info, keep)
+# Remove users where first answer is deleted
+data_str_tr <- subset(data_str_tr, !is.na(body))
 
-# get everything inside remove a new line
+# remove a new line
 data_str_tr$WithoutHTML <- gsub("\n", " ", data_str_tr$body)
-data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", " ", data_str_tr$WithoutHTML)
+# remove what is inside code
+data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", "", data_str_tr$WithoutHTML)
 
-# get everything inside <.*>
-data_str_tr$WithoutHTML <- gsub("<.*?>", "", data_str_tr$WithoutHTM)
+# # get everything inside the html formatting
+# data_str_tr$WithoutHTML <- gsub("<.*?>", "", data_str_tr$WithoutHTM)
 
 
 # # UTF-8 General Punctuation
@@ -180,9 +158,9 @@ data_str_tr$WithoutHTML <- gsub("<.*?>", "", data_str_tr$WithoutHTM)
 # 
 # HTML_freq <- data.frame(table(HTML$content))
 
-# remove UTF-8 general punctuation
-data_str_tr$WithoutHTML <- gsub("&.*?;", "", data_str_tr$WithoutHTML)
-data_str_tr$WithoutHTML <- gsub("\\s+", " ", str_trim(data_str_tr$WithoutHTML))
+# # remove UTF-8 general punctuation
+# data_str_tr$WithoutHTML <- gsub("&.*?;", "", data_str_tr$WithoutHTML)
+# data_str_tr$WithoutHTML <- gsub("\\s+", " ", str_trim(data_str_tr$WithoutHTML))
 
  
 # # Initialize the dataframe and the row count
@@ -207,14 +185,14 @@ data_str_tr$WithoutHTML <- gsub("\\s+", " ", str_trim(data_str_tr$WithoutHTML))
 # colnames(HTML) <- "HTMLcontent"
 # HTML_freq <- data.frame(table(HTML$content))
 
-# get everything inside remove a new line
-data_str_tr$BodyClean <- gsub("\n", " ", data_str_tr$body)
-# Remove html text and list formatting
-data_str_tr$BodyClean <- gsub("<(\\?|\\/?)(li|p|strong|em|ul|ol|pre|br|hr|h\\d|br|sup|sub|kbd|strike).*?>", 
-                               "", data_str_tr$BodyClean, ignore.case = TRUE)
-# </a>, </i>, </b>
-data_str_tr$BodyClean <- gsub("<\\/?(i|b)>", "", data_str_tr$BodyClean, ignore.case = TRUE)
-data_str_tr$BodyClean <- gsub("<\\/?(A)>", "", data_str_tr$BodyClean)
+# # get everything inside remove a new line
+# data_str_tr$BodyClean <- gsub("\n", " ", data_str_tr$body)
+# # Remove html text and list formatting
+# data_str_tr$BodyClean <- gsub("<(\\?|\\/?)(li|p|strong|em|ul|ol|pre|br|hr|h\\d|br|sup|sub|kbd|strike).*?>", 
+#                                "", data_str_tr$BodyClean, ignore.case = TRUE)
+# # </a>, </i>, </b>
+# data_str_tr$BodyClean <- gsub("<\\/?(i|b)>", "", data_str_tr$BodyClean, ignore.case = TRUE)
+# data_str_tr$BodyClean <- gsub("<\\/?(A)>", "", data_str_tr$BodyClean)
 
 # # Initialize the dataframe and the row count
 # HTML <- data.frame(Id = as.numeric(), 
@@ -236,59 +214,166 @@ data_str_tr$BodyClean <- gsub("<\\/?(A)>", "", data_str_tr$BodyClean)
 # 
 # HTML_freq <- data.frame(table(HTML$content))
 
+# #Alternative to BodyClean and WithoutHTML for counting words
+# Convenience function to convert html codes
+html2txt <- function(str) {
+  xpathApply(htmlParse(str, encoding="UTF-8", asText=TRUE),
+             "//body//text()",
+             xmlValue)
+}
+
+ 
+# # Initialize the dataframe and the row count
+# textWithoutHTML <- data.frame(Id = as.numeric(),
+#                             content = as.character(),
+#                             stringsAsFactors=FALSE)
+# row = 1
+# 
+# 
+# for (i in seq(nrow(data_str_tr))) {
+#   text <- html2txt(data_str_tr$WithoutHTML[i])
+# 
+#   if (length(text) != 0) {
+#     for (n in seq(length(text))) {
+#       textWithoutHTML[row, 1] <- data_str_tr$Id[i]
+#       textWithoutHTML[row, 2] <- text[n]
+#       row = row + 1
+#       }
+#   } else {
+#     textWithoutHTML[row, 1] <- data_str_tr$Id[i]
+#     textWithoutHTML[row, 2] <- NA
+#     row = row + 1
+#   }
+# }
+# 
+# # Initialize the dataframe and the row count
+# textWithoutHTMLcollapse <- data.frame(Id = as.numeric(),
+#                             bodyWithoutHTML = as.character(),
+#                             stringsAsFactors=FALSE)
+# row = 1
+# 
+# for (i in unique(textWithoutHTML$Id)) {
+#   tmp <- subset(textWithoutHTML, Id == i)
+# 
+#   textWithoutHTMLcollapse[row, 1] <- i
+#   textWithoutHTMLcollapse[row, 2] <- paste(tmp$content, collapse = "")
+# 
+#   row = row + 1
+# 
+# }
+# 
+# rm(textWithoutHTML, tmp, i, n, row, text)
+# 
+# write.csv(textWithoutHTMLcollapse,
+#           "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/textWithoutHTML.csv",
+#           fileEncoding ="UTF-8",
+#           row.names = FALSE)
+
+data_str_tr$WithoutHTML <- NULL
+
+textWithoutHTMLcollapse <- read.csv("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/textWithoutHTML.csv",
+                          fileEncoding ="UTF-8", 
+                          stringsAsFactors=FALSE)
+
+data_str_tr <- merge(data_str_tr, textWithoutHTMLcollapse, 
+                     by="Id", all.x = TRUE)
+
+rm(textWithoutHTMLcollapse)
+
+# # Initialize the dataframe and the row count
+# code_test <- data.frame(Id = as.numeric(),
+#                             content = as.character(),
+#                             stringsAsFactors=FALSE)
+# row = 1
+# 
+# for (i in seq(nrow(data_str_tr))) {
+#   
+#   codes <- str_match_all(data_str_tr$Body[i], "(<code>.*?</code>)")[[1]][,2]
+#   
+#   if (length(codes) != 0) {
+#     for (n in seq(length(codes))) {
+#       
+#       code_test[row, 1] <- data_str_tr$Id[i]
+#       code_test[row, 2] <- codes[n]
+#       row = row + 1
+#       
+#     }
+#   }
+# }
+
 # Link to external resources + context (informed referenced answer)
-# count the number of links in a answer
-data_str_tr$CountHtml <- NA
+# % words that are linked to external resources
+HtmlWords <- data.frame(Id = as.numeric(),
+                            HTMLWordsCount = as.numeric(),
+                            stringsAsFactors=FALSE)
+row = 1
 
 for (i in seq(nrow(data_str_tr))) {
-  data_str_tr$CountHtml[i] <- length(str_match_all(data_str_tr$BodyClean[i], "(<a href=.*?>)")[[1]][,2])
-}
 
-# TODO % worlds that are linked to external resources
-# foo <- subset(data_str_tr, Id == 15741)
-# foo <- subset(data_str_tr, Id == 15749)
-# foo <- subset(data_str_tr, Id == 119596)
-data_str_tr$CountWordsHtml <- NA
-
-for (i in seq(nrow(data_str_tr))) {
-  HtmlContent <- str_match_all(data_str_tr$BodyClean[i], "(<a href=.*?>(.*?)</a>)")[[1]][,3]
-  HtmlContent <- paste(HtmlContent, collapse = " ")
+  tmp <- str_match_all(data_str_tr$body[i], "<a href=.*?>(.*?)<\\/a>")[[1]][,2]
   
-  # take out img referenced inside a href
-  HtmlContent <- gsub("<img src=.*?/>", "", HtmlContent, ignore.case = TRUE)
-  HtmlContent <- gsub("\\s+", " ", str_trim(HtmlContent))
-
-  data_str_tr$CountWordsHtml[i] <- sapply(strsplit(HtmlContent, " "), length)
+  if (length(tmp) != 0) {
+    tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+    if (length(tmp) != 0) {
+      tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
+      tmp <- gsub("\n", " ", tmp)
+      HtmlWords[row, 1] <- data_str_tr$Id[i]
+      HtmlWords[row, 2] <- sapply(strsplit(tmp, " "), length)
+      row = row + 1
+    }
+  }
 }
 
-# count the number of </blockquote>/reference in a 
-data_str_tr$CountRef <- NA
+data_str_tr <- merge(data_str_tr, HtmlWords, 
+                     by="Id", all.x = TRUE)
+
+rm(HtmlWords, i, row, tmp)
+
+data_str_tr$HTMLWordsCount <- ifelse(is.na(data_str_tr$HTMLWordsCount), 0, data_str_tr$HTMLWordsCount)
+
+
+
+# count the number of words referenced in a </blockquote>
+RefsWords <- data.frame(Id = as.numeric(),
+                        RefsWordsCount = as.numeric(),
+                        stringsAsFactors=FALSE)
+row = 1
 
 for (i in seq(nrow(data_str_tr))) {
-  data_str_tr$CountRef[i] <- length(str_match_all(data_str_tr$BodyClean[i], "(<blockquote>.*?</blockquote>)")[[1]][,2])
+  
+  tmp <- str_match_all(data_str_tr$body[i], "<blockquote>((.|\\s)*?)</blockquote>")[[1]][,2]
+  if (length(tmp) != 0) {
+    tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+    if (length(tmp) != 0) {
+      tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
+      tmp <- gsub("\n", " ", tmp)
+      RefsWords[row, 1] <- data_str_tr$Id[i]
+      RefsWords[row, 2] <- sapply(strsplit(tmp, " "), length)
+      row = row + 1
+    }
+  }
 }
 
-# TODO % worlds that are quoted
-# foo <-subset(data_str_tr, Id == 95542
-# foo <-subset(data_str_tr, Id == 74935)
 
-data_str_tr$CountWordsRef <- NA
+data_str_tr <- merge(data_str_tr, RefsWords, 
+                     by="Id", all.x = TRUE)
 
-for (i in seq(nrow(data_str_tr))) {
-  RefContent <- str_match_all(data_str_tr$BodyClean[i], "<blockquote>(.*?)</blockquote>")[[1]][,2]
-  RefContent <- paste(RefContent, collapse = " ")
-  RefContent <- gsub("\\s+", " ", str_trim(RefContent))
-  data_str_tr$CountWordsRef[i] <- sapply(strsplit(RefContent,  " "), length)
-}
+rm(RefsWords, i, row, tmp)
 
-# TODO (check again) Words Count
-data_str_tr$WordsCount <- NA
+data_str_tr$RefsWordsCount <- ifelse(is.na(data_str_tr$RefsWordsCount), 0, data_str_tr$RefsWordsCount)
 
-for (i in seq(nrow(data_str_tr))) {
-  data_str_tr$WordsCount[i] <- sapply(strsplit(data_str_tr[i, 'WithoutHTML'], " "), length)
-}
 
-# TODO % words quoted & % of words linked to external source
+# Words Count
+data_str_tr$WordsCount <- sapply(strsplit(data_str_tr$bodyWithoutHTML, " "), length)
+
+# % words quoted and linked to external source
+data_str_tr$externalSource_pct <- round(((data_str_tr$HTMLWordsCount + data_str_tr$RefsWordsCount)
+                                          /data_str_tr$WordsCount)*100, 2)
+
+# TODO in the words count remove empty, code, etc.
+# TODO tmp <- str_match_all(subset(data_str_tr, Id == 75095)$body, "<blockquote>((.|\\s)*?)</blockquote>")[[1]][,2]
+# TODO strsplit(subset(data_str_tr, Id == 75095)$bodyWithoutHTML, " ")
+
 # 3 Screenshots, mock-ups provided
 
 # # Initialize the dataframe and the row count
@@ -717,39 +802,7 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
 #                   "QUIET_QUITE" "BESIDES_BESIDE" "WAN_WANT" "WHAT_IT_THE" "ADVICE_ADVISE" "BLU_RAY" "MAY_MANY_MY"
 
 
-# Convenience function to convert html codes
-html2txt <- function(str) {
-xpathApply(htmlParse(str, asText=TRUE),
-                "//body//text()", 
-                xmlValue)
-}
 
-
-
-# Initialize the dataframe and the row count
-original_text <- data.frame(Id = as.numeric(),
-                             content = as.character(),
-                             stringsAsFactors=FALSE)
-row = 1
-
-
-for (i in seq(nrow(data_str_tr))) {
-  if (!is.na(data_str_tr$body[i])) {
-    
-    text <- html2txt(data_str_tr$body[i])
-      
-    for (n in seq(length(text))) {
-      original_text[row, 1] <- data_str_tr$Id[i]
-      original_text[row, 2] <- text[n]
-      row = row + 1
-    }
-  }
-}
-
-write.csv(original_text,
-          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/original_text.csv",
-          fileEncoding ="UTF-8",
-          row.names = FALSE)
 
 
 
