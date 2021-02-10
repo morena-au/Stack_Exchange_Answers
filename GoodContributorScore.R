@@ -551,42 +551,19 @@ subset(incorrect_dict, Id == 24673)
 
 
 
-category <- subset(grammar_spelling_analysis, category == "GRAMMAR")
+category <- subset(grammar_spelling_analysis, category == "COLLOCATIONS")
 #ruleIssueType <- subset(category, ruleIssueType == 'misspelling')
 unique(category$ruleId)
-ruleId <- subset(category, ruleId ==  )
+ruleId <- subset(category, ruleId == )
 unique(ruleId$message)
 
-# "LINE_COMPOUNDS" "CONDITIONAL_CLAUSE" "PRP_RB_JJ" "DOES_X_HAS" "AND_END" "RELY_ON" "A_UNCOUNTABLE"
-# "THERE_MISSING_VERB" "BREAKER_COMPOUNDS" "SUPPOSE_TO" "A_BIT" "CD_NN" "LIFE_COMPOUNDS" "MORE_A_JJ"
-# "SINGULAR_VERB_AFTER_THESE_OR_THOSE" "EXPLAIN_TO" "A_LOT_OF_NN" "MANY_NN_U" "THERE_WAS_MANY"
-# "SINGULAR_AGREEMENT_SENT_START" "IN_THE_MEAN_TIME_PHRASE" "IN_TERM_OF_PHRASE" "SIGN_INTO"
-# "PRP_PAST_PART" "ALLOW_TO_DO" "COUNTER_COMPOUNDS" "DID_BASEFORM" "PROGRESSIVE_VERBS" "PEOPLE_VBZ"
-# "THE_MOST"  "HOMO_SAPIENS" "TO_RB_TO_VB" "UP_COMPOUNDS"  "PRP_HAVES"  "BOTH_AS_WELL_AS"
-# "DID_FOUND_AMBIGUOUS" "DOES_NP_VBZ" "WHAT_IS_YOU"  "SUPERIOR_THAN_TO" "THE_ARE"  "PRP_DON"
-# "BASE_FORM" "ONE_PLURAL" "ON_COMPOUNDS" "HAPPY_EASTER" "DID_PAST" "MISSING_ARTICLE" "NOTE_COMPOUNDS"
-# "SOME_NN_VBP" "GAMEBOY" "HE_NEED" "I_MA" "IN_WEEKDAY" "BE_VBP_IN"   "AFFORD_VB" "IF_THERE"
-# "AGREEMENT_SENT_START_2" "EQUALLY_AS"   "PRP_FOND" "BACK_COMPOUNDS" "THE_BEST_WAY"  "CROSS_COMPOUNDS"
-# "OUT_COMPOUNDS" "PRP_RB_NO_VB" "BE_IS" "HAD_VBP" "ROOM_COMPOUNDS" "ALLOW_TO" "BE_NO_VB" "BE_NO_VB"
-# "A_BIT_OF" "SPLITTED"  "ON_FIRST_GLANCE" "AN_ANOTHER" "SUPERLATIVE_THAN" "CAUSE_BECAUSE "DIE_DICE"
-# "EYE_COMPOUNDS" "HOW_DO_I_VB" "STRIKED" "THANK_FULL" "TWO_CONNECTED_MODAL_VERBS" "IS_VBZ" "THERE_AFTER"
-# "MATE_COMPOUNDS" "BE_TO_VBG" "MANY_TIME" "PROOF_COMPOUNDS" "FURTHER_MORE_COMPOUND" "HARDWARES"
-# "THESE_ONES" "IT_ITS" "AS_ADJ_AS" "DOESENT" "TAKEAWAY" "SHORT_COMPARATIVES"  "REGARDING_TO"
-# "HEAD_COMPOUNDS" "DO_HE_VERB" "DETERMINER_GEOGRAPHICAL_WORD"  "ABLE_VBP" "WORK_AROUND_COMPOUND"
-# "DOWN_COMPOUNDS"  "WOULD_BE_JJ_VB" "POSSESSIVE_CASE" "WHAT_TO_VBD"  "TOO_EITHER" "DT_RB_IN" 
-# "THIS_NNS_VB"  "SHIP_COMPOUNDS" "PRP_NO_VB" THE_EXACTLY_THE "BELIVE_BELIEVE" "MOST_SUPERLATIVE"
-# "THIS_TOOLS" "I_NOT_JJ" "DO_VBZ" "BE_INTEREST_IN", "AN_VB_PRP" (with mistakes)
+# "COLLOCATIONS": "ON_IN_THE_AFTERNOON" "INDEPENDENTLY_FROM_OF" "RETURN_IN_THE" "ARRIVAL_TO_THE_HOUSE"
+#                 "BY_EXAMPLE" "ON_IN_THE_CORNER" "HIDE_OF_FROM" "ENTER_IN" "IN_AT_THE_TOP"
+#                 "IN_ON_THE_RIGHT_HAND_SIDE" "GOOD_IN_AT_GERUND" "IT_IS_SURE" "ACCUSTOM_WITH_TO"
+#                 "ASK_TO" "IN_THE_INTERNET" "WORRY_FOR" "ARRIVE_ON_AT_THE_BEACH" "LOT_OF"
+#                 "ATD_VERBS_TO_COLLOCATION"   "CONSEQUENCES_OF_FOR" "ACCOMPANY_WITH" "INTEREST_ABOUT_IN"
+#                 "FULL_WITH_OF" "DAMAGE_OF_TO"
 
-
-"PRP_MD_NN",  "THE_PUNCT",  "COLLECTIVE_NOUN_VERB_AGREEMENT_VBP", "APPLE_PRODUCTS", "WORD_ESSAY_HYPHEN", 
-"OBJECTIVE_CASE", "RUNNER_UP_HYPHEN", "MUST_HAVE","PRP_THE", "TOO_ADJECTIVE_TO", "STEP_BY_STEP_HYPHEN", 
-"THE_IT",  "DT_JJ_NO_NOUN", "GO_TO_HYPHEN", "POKEMON", "NO_GO_HYPHEN", "A_THANK_YOU", "WEEK_LONG_HYPHEN", 
-"OPT_IN_HYPHEN",  "CALL_TO_ACTION_HYPHEN", "MARKDOWN_NNP", "CA_BRAND_NEW", "HAVE_TWITTER", "TOP_DOWN_HYPHEN", 
-"OPEN_OFFICE", "SET_TOP_BOX_HYPHEN", "ADVERB_OR_HYPHENATED_ADJECTIVE", "MONEY_BACK_HYPHEN", "THE_HOT_DOG", 
-"SOON_TO_BE_HYPHEN", "HIGH_END_HYPHEN",  "THOUGH_THOUGHT",  "CLEAR_CUT_HYPHEN", "THE_NN_AND_THE_NN", 
-"ARTICLE_ADJECTIVE_OF", "MUST_BE_DO", "MISSING_NOUN", "YEAR_HYPHEN", "MISSING_PAST_TENSE", "SO_CALLED_HYPHEN", 
-"AN_ARE", "A_COLLECTIVE_OF_NN", "NEEDNT_TO_DO_AND_DONT_NEED_DO", "CATCH_ALL_HYPHEN", "MUCH_NEEDED_HYPHEN" 
-"DAY_TO_DAY_HYPHEN", "PROBLEM_SOLVE_HYPHEN", "HAD_TOO"
 
 
 # "GRAMMAR": "CA_FOLLOW_UP" "MD_BASEFORM" "DOSNT" "THERE_S_MANY" "IT_VBZ" "MOST_COMPARATIVE"
@@ -605,6 +582,25 @@ unique(ruleId$message)
 #            "LOTS_OF_NN" "THIS_NNS" "NON_ACTION_CONTINUOUS" "DOUBLE_NEGATIVE" "COPY_PASTE"
 #            "AFFORD_VBG" "AFFORD_VBG" "THERE_RE_MANY" "A_RB_NN" "RELATIVE_CLAUSE_AGREEMENT"
 #             "TO_NON_BASE" "YOU_TUBE" "SOFTWARES" "NEITHER_NOR"  "MUCH_COUNTABLE" "OVER_COMPOUNDS"
+            # "LINE_COMPOUNDS" "CONDITIONAL_CLAUSE" "PRP_RB_JJ" "DOES_X_HAS" "AND_END" "RELY_ON" "A_UNCOUNTABLE"
+            # "THERE_MISSING_VERB" "BREAKER_COMPOUNDS" "SUPPOSE_TO" "A_BIT" "CD_NN" "LIFE_COMPOUNDS" "MORE_A_JJ"
+            # "SINGULAR_VERB_AFTER_THESE_OR_THOSE" "EXPLAIN_TO" "A_LOT_OF_NN" "MANY_NN_U" "THERE_WAS_MANY"
+            # "SINGULAR_AGREEMENT_SENT_START" "IN_THE_MEAN_TIME_PHRASE" "IN_TERM_OF_PHRASE" "SIGN_INTO"
+            # "PRP_PAST_PART" "ALLOW_TO_DO" "COUNTER_COMPOUNDS" "DID_BASEFORM" "PROGRESSIVE_VERBS" "PEOPLE_VBZ"
+            # "THE_MOST"  "HOMO_SAPIENS" "TO_RB_TO_VB" "UP_COMPOUNDS"  "PRP_HAVES"  "BOTH_AS_WELL_AS"
+            # "DID_FOUND_AMBIGUOUS" "DOES_NP_VBZ" "WHAT_IS_YOU"  "SUPERIOR_THAN_TO" "THE_ARE"  "PRP_DON"
+            # "BASE_FORM" "ONE_PLURAL" "ON_COMPOUNDS" "HAPPY_EASTER" "DID_PAST" "MISSING_ARTICLE" "NOTE_COMPOUNDS"
+            # "SOME_NN_VBP" "GAMEBOY" "HE_NEED" "I_MA" "IN_WEEKDAY" "BE_VBP_IN"   "AFFORD_VB" "IF_THERE"
+            # "AGREEMENT_SENT_START_2" "EQUALLY_AS"   "PRP_FOND" "BACK_COMPOUNDS" "THE_BEST_WAY"  "CROSS_COMPOUNDS"
+            # "OUT_COMPOUNDS" "PRP_RB_NO_VB" "BE_IS" "HAD_VBP" "ROOM_COMPOUNDS" "ALLOW_TO" "BE_NO_VB" "BE_NO_VB"
+            # "A_BIT_OF" "SPLITTED"  "ON_FIRST_GLANCE" "AN_ANOTHER" "SUPERLATIVE_THAN" "CAUSE_BECAUSE "DIE_DICE"
+            # "EYE_COMPOUNDS" "HOW_DO_I_VB" "STRIKED" "THANK_FULL" "TWO_CONNECTED_MODAL_VERBS" "IS_VBZ" "THERE_AFTER"
+            # "MATE_COMPOUNDS" "BE_TO_VBG" "MANY_TIME" "PROOF_COMPOUNDS" "FURTHER_MORE_COMPOUND" "HARDWARES"
+            # "THESE_ONES" "IT_ITS" "AS_ADJ_AS" "DOESENT" "TAKEAWAY" "SHORT_COMPARATIVES"  "REGARDING_TO"
+            # "HEAD_COMPOUNDS" "DO_HE_VERB" "DETERMINER_GEOGRAPHICAL_WORD"  "ABLE_VBP" "WORK_AROUND_COMPOUND"
+            # "DOWN_COMPOUNDS"  "WOULD_BE_JJ_VB" "POSSESSIVE_CASE" "WHAT_TO_VBD"  "TOO_EITHER" "DT_RB_IN" 
+            # "THIS_NNS_VB"  "SHIP_COMPOUNDS" "PRP_NO_VB" THE_EXACTLY_THE "BELIVE_BELIEVE" "MOST_SUPERLATIVE"
+            # "THIS_TOOLS" "I_NOT_JJ" "DO_VBZ" "BE_INTEREST_IN", "AN_VB_PRP" (with mistakes)
 
 
 grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
@@ -620,7 +616,33 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                     "A_INSTALL", "PREPOSITION_VERB",
                                                     "EACH_EVERY_NNS", "A_TO", "ON_EXCEL", 
                                                     "MAKE_UP","USE_TO_VERB", "SUBJECT_MATTER_HYPHEN", 
-                                                    "LOGGED_IN_HYPHEN", "CLICK_HYPHEN",  "GOOGLE_PRODUCTS"
+                                                    "LOGGED_IN_HYPHEN", "CLICK_HYPHEN",  "GOOGLE_PRODUCTS", 
+                                                    "PRP_MD_NN",  "THE_PUNCT",  "COLLECTIVE_NOUN_VERB_AGREEMENT_VBP",
+                                                    "APPLE_PRODUCTS", "WORD_ESSAY_HYPHEN", 
+                                                    "OBJECTIVE_CASE", "RUNNER_UP_HYPHEN", 
+                                                    "MUST_HAVE","PRP_THE", "TOO_ADJECTIVE_TO",
+                                                    "STEP_BY_STEP_HYPHEN", 
+                                                    "THE_IT",  "DT_JJ_NO_NOUN", "GO_TO_HYPHEN",
+                                                    "POKEMON", "NO_GO_HYPHEN", "A_THANK_YOU", 
+                                                    "WEEK_LONG_HYPHEN", 
+                                                    "OPT_IN_HYPHEN",  "CALL_TO_ACTION_HYPHEN", 
+                                                    "MARKDOWN_NNP", "CA_BRAND_NEW", "HAVE_TWITTER", 
+                                                    "TOP_DOWN_HYPHEN", 
+                                                    "OPEN_OFFICE", "SET_TOP_BOX_HYPHEN", 
+                                                    "ADVERB_OR_HYPHENATED_ADJECTIVE",
+                                                    "MONEY_BACK_HYPHEN", "THE_HOT_DOG", 
+                                                    "SOON_TO_BE_HYPHEN", "HIGH_END_HYPHEN", 
+                                                    "THOUGH_THOUGHT",  "CLEAR_CUT_HYPHEN", 
+                                                    "THE_NN_AND_THE_NN", 
+                                                    "ARTICLE_ADJECTIVE_OF", "MUST_BE_DO", 
+                                                    "MISSING_NOUN", "YEAR_HYPHEN", "MISSING_PAST_TENSE", 
+                                                    "SO_CALLED_HYPHEN", 
+                                                    "AN_ARE", "A_COLLECTIVE_OF_NN", 
+                                                    "NEEDNT_TO_DO_AND_DONT_NEED_DO", 
+                                                    "CATCH_ALL_HYPHEN", "MUCH_NEEDED_HYPHEN", 
+                                                    "DAY_TO_DAY_HYPHEN", "PROBLEM_SOLVE_HYPHEN",
+                                                    "HAD_TOO", "NON_ANTI_JJ", "MENTION_ABOUT", "MISSING_PREPOSITION",
+                                                    "ADVERTISEMENT_OF_FOR"
                                                     )))
                                                     
                                                     
