@@ -17,7 +17,7 @@ data_str_tr <- subset(data_str_tr, event == 1)
 
 # drop columns
 data_str_tr <- data_str_tr[ , -which(names(data_str_tr) %in%
-                                       c("CreationDate", "LastActivityDate", "LastAccessDate", 
+                                       c("LastActivityDate", "LastAccessDate", 
                                          "tstart", "tstop", "event", "status", "UX_registration", 
                                          "EditCount", "AcceptedByOriginator",  "UpMod", "DownMod", 
                                          "CommentCount", "year", "SE_registration", "start_UX",  
@@ -599,7 +599,7 @@ disregard_confused <- c("RED_READ",
 
 # keep_grammar <- c("CA_FOLLOW_UP", "MD_BASEFORM", "DOSNT",
 #                   "THERE_S_MANY", "IT_VBZ", "MOST_COMPARATIVE",
-#                   "TWITTER", "HAVE_PART_AGREEMENT", "A_NNS",
+#                   "HAVE_PART_AGREEMENT", "A_NNS",
 #                   "ON_SKYPE", "ADMIT_ENJOY_VB", #(some errors)
 #                   "PLURAL_VERB_AFTER_THIS", "HOLDER_COMPOUNDS",
 #                   "PERS_PRONOUN_AGREEMENT", "IN_WHO",
@@ -672,13 +672,13 @@ disregard_confused <- c("RED_READ",
 #                   "THE_EXACTLY_THE", "BELIVE_BELIEVE", 
 #                   "MOST_SUPERLATIVE", "THIS_TOOLS",
 #                   "I_NOT_JJ", "DO_VBZ", "BE_INTEREST_IN", 
-#                   "AN_VB_PRP", #(with mistakes)
+#                   "AN_VB_PRP",
 #                   "IT_IT", "A_MD_VB", "A_COMPLAIN")
 
 
 disregard_grammar <- c("A_INFINITIVE", "HEADED_HYPHEN",
                        "DT_PRP", # due to deleting html formatting 
-                       "SENTENCE_FRAGMENT",
+                       "SENTENCE_FRAGMENT", "TWITTER", 
                        "PRP_VB", "ADVERB_WORD_ORDER", 
                        "SIMPLE_TO_USE_HYPHEN", 
                        "PRP_JJ", "FACTOR_HYPHEN", 
@@ -728,8 +728,8 @@ disregard_grammar <- c("A_INFINITIVE", "HEADED_HYPHEN",
                        "INCORRECT_POSSESSIVE_FORM_AFTER_A_NUMBER")
 
 
-# keep_misc <- c("EN_A_VS_AN", "EN_COMPOUNDS")
-disregard_misc <- c("ENGLISH_WORD_REPEAT_RULE", "EN_WORD_COHERENCY")
+# keep_misc <- c("EN_A_VS_AN")
+disregard_misc <- c("ENGLISH_WORD_REPEAT_RULE", "EN_WORD_COHERENCY", "EN_COMPOUNDS")
 
 # keep_casing <- c("EN_SPECIFIC_CASE")
 disregard_casing <- c("UPPERCASE_SENTENCE_START", 
@@ -762,10 +762,6 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                       "AMERICAN_ENGLISH_STYLE", 
                                                       "COMPOUNDING")))
 
-# NB.:                                                  
-# STYLE: take it out from grammar, but it could be used to 
-# profile the users (informal, offensive, etc. )
-
 # remove COMMA_PARENTHESIS_WHITESPACE could be due to the previous text cleaning steps
 grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
                                     !(ruleId %in% c(disregard_punctuation, 
@@ -786,78 +782,59 @@ rm(disregard_punctuation,
      disregard_casing, 
      disregard_collocations, i)
 
-# DISREGARD THE ERRORS FURTHER DUE TO THEIR PECULIARITY
-"MORFOLOGIK_RULE_EN_US"
+# DISREGARDED ERRORS DUE TO THEIR PECULIARITY
+# An enormous amount of work needed in order to create a meaningful "community dictionary"
+grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
+                                    !(ruleId %in% c("MORFOLOGIK_RULE_EN_US", 
+                                                    "NON_STANDARD_WORD", 
+                                                    "MISSING_TO_BEFORE_A_VERB")))
 
-# remove messages that refers to British English
 
 grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
-              substr(message, nchar(message) - 15, nchar(message)) != "British English.")
+               substr(message, nchar(message) - 8, nchar(message)) != "fasting”.")
 
 
+data_str_tr$grammarErrors <- NA
 
-tmp <- subset(grammar_spelling_analysis, ruleId == "MORFOLOGIK_RULE_EN_US") 
-
-tmp$originalError <- NA
-
-for (i in seq(nrow(tmp))){
-  gs_Id <- tmp$Id[i]
-  originalText <- subset(data_str_tr, Id == gs_Id)$bodyWithoutHTML
+for (i in seq(nrow(data_str_tr))) {
+  post_id <- data_str_tr$Id[i]
+  data_str_tr$grammarErrors[i] <- nrow(subset(grammar_spelling_analysis, 
+                                           Id == post_id))
   
-  start <- tmp$offset[i]
-  end <- tmp$errorLength[i]
-  
-  tmp$originalError[i] <- str_trim(substr(originalText, start, start+end))
 }
 
-rm(start, end, originalText, gs_Id)
+rm(i, post_id)
 
-# remove all errors around proper names/words that contains capital letters
-tmp <- subset(tmp, !grepl("[[:upper:]]", originalError))
+data_str_tr$CorrectGrammarScore <- 100 - round((data_str_tr$grammarErrors/
+                                            data_str_tr$WordsCount)*100, 2)
+rm(grammar_spelling_analysis)
 
-# remove words that contains punctuation
-tmp <- subset(tmp, !grepl("[[:punct:]]", originalError))
-# remove single letter words greater than 3
-tmp <- subset(tmp, !grepl("(\\w)\\1{3,}", originalError)) 
+# 6. Reputation 
+setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw")
+reputation <- read.csv("Reputation.csv", stringsAsFactors = FALSE) 
 
+# time formatting
+reputation$time_UTC <- as.POSIXct(substr(reputation$time_UTC,1,nchar(reputation$time_UTC)-1), 
+                                  format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 
-tmp_str = "Possible spelling mistake. ‘optimise’ is British English."
-substr(tmp_str, nchar(tmp_str) - 15, nchar(tmp_str)) != "British English."
-foo <- subset(typos, ruleId == "MORFOLOGIK_RULE_EN_US")
-foo <- subset(typos, substr(message, nchar(message) - 15, nchar(message)) != "British English.")
-
-
-
-# Accepted words by the community (community dictionary)
-community_dictionary <- c("gmail", "mrs", "mr", "signup", "textbox" , "woopra",  
-                          "javascript", "choroplethic", "chartbeat", "clicky" ,                                   
-                          "divs", "cacheable", "css", "mockup", "facebook", "emptor",
-                          "ajax", "trojan", "diceware", "megacorp", "regedit", 
-                          "html", "wireframing", "de", "guids", "clickheat", "url", 
-                          "alternativeto", "ios", "datepicker", "toolset", "ux", 
-                          "os", "filepicker", "gui", "conceptshare", "lede",  
-                          "shortcode", "bcc", "eg", "sparklines", "usb", "mockups", 
-                          "bmml", "stackexchange", "spamassassin", "craigslist" ,
-                          "gutshot", "jquery", "rb", "techcrunch", "treemap", 
-                          "sftp",  "multitouch", "comboboxes", "mliebelt", "esc", 
-                          "iframed", "outliners", "outliner", "tradeoff", "xkcd", 
-                          "bbc", "linux", "whatterz", "blogpost", "highscore",
-                          "refuseniks", "omnigraffle", "pâte", "fermente",  
-                          "fugasse", "typeahead", "peteorpeter" , "datatable",       
-                          "opensource", "rp", "pdf", "listbox", "txt", "onclick",                 
-                          "wordlist", "interpunctuation", "mailto", "microformats", 
-                          "userscript", "microdata", "webapp", "screenshare", 
-                          "gamelet", "facebookemail", "facebookid","adrianh", 
-                          "cpu", "winforms", "reddit", "severities", "gridwork", 
-                          "lightbox", "webserver",  "lipsums", "onblur", 
-                          "scannable", "arial",  "paginators")
+# Calculate totRep until CreationTime
+reputation_df <- merge(data_str_tr[,c("OwnerUserId", "Id", "CreationDate")], reputation, 
+                       by = "OwnerUserId", all.x = TRUE)
 
 
+reputation_sum <- reputation_df %>%
+  group_by(Id) %>%
+  summarize(TotRep = sum(reputation[time_UTC <= CreationDate]))
 
+# add 1 reputation points to all. 
+# 1 point is given as default when you register 
+reputation_sum$TotRep <- ifelse(is.na(reputation_sum$TotRep), 0, reputation_sum$TotRep)
+reputation_sum$TotRep <- reputation_sum$TotRep + 1
 
-
-
-
+# Merge
+data_str_tr <- merge(data_str_tr, reputation_sum, 
+                     by = "Id", all.x = TRUE)
+rm(reputation, reputation_df, reputation_sum)
 
 
 
