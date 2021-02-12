@@ -463,14 +463,14 @@ disregard_punctuation <- c("COMMA_COMPOUND_SENTENCE_2",
                            "I_E", 
                            "UNIT_SPACE")
 
-keep_punctuation <- c("SENT_START_CONJUNCTIVE_LINKING_ADVERB_COMMA",  
-                      "QUESTION_MARK",  
-                      "NO_COMMA_BEFORE_INDIRECT_QUESTION", 
-                      "EG_SPACE", 
-                      "APOS_ARE", 
-                      "ENUMERATION_AND_DASHES", 
-                      "COMMA_AFTER_A_MONTH",
-                      "MISSING_COMMA_BETWEEN_DAY_AND_YEAR")
+# keep_punctuation <- c("SENT_START_CONJUNCTIVE_LINKING_ADVERB_COMMA",  
+#                       "QUESTION_MARK",  
+#                       "NO_COMMA_BEFORE_INDIRECT_QUESTION", 
+#                       "EG_SPACE", 
+#                       "APOS_ARE", 
+#                       "ENUMERATION_AND_DASHES", 
+#                       "COMMA_AFTER_A_MONTH",
+#                       "MISSING_COMMA_BETWEEN_DAY_AND_YEAR")
 
 
 disregard_typos <- c("DISCUSSIONS_AROUND", 
@@ -498,47 +498,46 @@ disregard_typos <- c("DISCUSSIONS_AROUND",
                       "WHOSE_DT", "APART_FORM")
 
 
-keep_typos <- c("MORFOLOGIK_RULE_EN_US", # (accept British English, compare with the one found in the incorrect dict),)
-                "I_LOWERCASE", "OUT_COME",  
-                "IS_SHOULD", "IT_IS", # (there are some mistakes though)
-                "MISSING_GENITIVE", 
-                "POSSESSIVE_APOSTROPHE", "LAYS_ATOP", 
-                "IM_AM", "EN_CONTRACTION_SPELLING",  
-                "LETS_LET", "SETUP_VERB", 
-                "NON_STANDARD_WORD", # (check with incorrect dictionary) 
-                "ABOUT_ITS_NN", "ANY_MORE", 
-                "COMPARISONS_THEN", 
-                "AFTERALL", "IT_IS_2", 
-                "EN_DIACRITICS_REPLACE", 
-                "LIGHT_WEIGHT", "CONFUSION_OF_THEN_THAN", 
-                "CANT", "FOR_AWHILE", 
-                "WHERE_AS", "YOUR_SHOULD" ,
-                "TEL_TELL", "THE_SOME_DAY", 
-                "THROUGH_OUT", "ANY_BODY", 
-                "META_DATA", "ALLOT_OF", 
-                "TO_VB_ITS_NN", "MY_BE" , 
-                "LOOSING_EFFORTRECORDSEASON",
-                "TO_COMEBACK", "YOUR_YOU",
-                "WORTH_WHILE", "BARE_IN_MIND",
-                "WIFI", "IF_OF", "NOW_A_DAYS", 
-                "INCORRECT_CONTRACTIONS", "WORLD_WIDE",
-                "AM_LOATHE_TO", "CA_PRP",
-                "FROM_FORM", "WHOS_NN", 
-                "THEM_SELVES", "MI", "VERB_APOSTROPHE_S",
-                "THEE", "THINK_OFF", "WHOM_WHO",
-                "ITS_IS", "WITH_OUT", "ER", "CAN_BACKUP", 
-                "THERE_FORE", "ET_AL", "ONE_OF_THE_ONLY",
-                "TIS", "HASNT_IRREGULAR_VERB", "HE_THE",
-                "ALONG_SIDE", "ANINFOR_EVERY_DAY", 
-                "NEAR_BY", "KEY_WORDS", "OUT_SIDE",
-                "PERS_PRON_CONTRACTION", "SENT_START_THEM",
-                "STAND_ALONE_NN", "ONE_THE_ONE_HAND", 
-                "ALONG_TIME", "OM", "FREE_REIGN",
-                "FOR_FRO", "VARY_VERY", "APART_A_PART",
-                "AN_THEN", "ELUDED_TO", "NEED_TO_VBG",
-                "SOME_WHAT_JJ", "BUILD_OFF_OF", "ANY_WHERE",
-                "MODAL_OF", "LOT_S", "INCASE_OF", 
-                "HOW_EVER","ONE_ORE")
+# keep_typos <- c(I_LOWERCASE", "OUT_COME",  
+#                 "IS_SHOULD", "IT_IS", # (there are some mistakes though)
+#                 "MISSING_GENITIVE", 
+#                 "POSSESSIVE_APOSTROPHE", "LAYS_ATOP", 
+#                 "IM_AM", "EN_CONTRACTION_SPELLING",  
+#                 "LETS_LET", "SETUP_VERB", 
+#                 "NON_STANDARD_WORD", # (check with incorrect dictionary) 
+#                 "ABOUT_ITS_NN", "ANY_MORE", 
+#                 "COMPARISONS_THEN", 
+#                 "AFTERALL", "IT_IS_2", 
+#                 "EN_DIACRITICS_REPLACE", 
+#                 "LIGHT_WEIGHT", "CONFUSION_OF_THEN_THAN", 
+#                 "CANT", "FOR_AWHILE", 
+#                 "WHERE_AS", "YOUR_SHOULD" ,
+#                 "TEL_TELL", "THE_SOME_DAY", 
+#                 "THROUGH_OUT", "ANY_BODY", 
+#                 "META_DATA", "ALLOT_OF", 
+#                 "TO_VB_ITS_NN", "MY_BE" , 
+#                 "LOOSING_EFFORTRECORDSEASON",
+#                 "TO_COMEBACK", "YOUR_YOU",
+#                 "WORTH_WHILE", "BARE_IN_MIND",
+#                 "WIFI", "IF_OF", "NOW_A_DAYS", 
+#                 "INCORRECT_CONTRACTIONS", "WORLD_WIDE",
+#                 "AM_LOATHE_TO", "CA_PRP",
+#                 "FROM_FORM", "WHOS_NN", 
+#                 "THEM_SELVES", "MI", "VERB_APOSTROPHE_S",
+#                 "THEE", "THINK_OFF", "WHOM_WHO",
+#                 "ITS_IS", "WITH_OUT", "ER", "CAN_BACKUP", 
+#                 "THERE_FORE", "ET_AL", "ONE_OF_THE_ONLY",
+#                 "TIS", "HASNT_IRREGULAR_VERB", "HE_THE",
+#                 "ALONG_SIDE", "ANINFOR_EVERY_DAY", 
+#                 "NEAR_BY", "KEY_WORDS", "OUT_SIDE",
+#                 "PERS_PRON_CONTRACTION", "SENT_START_THEM",
+#                 "STAND_ALONE_NN", "ONE_THE_ONE_HAND", 
+#                 "ALONG_TIME", "OM", "FREE_REIGN",
+#                 "FOR_FRO", "VARY_VERY", "APART_A_PART",
+#                 "AN_THEN", "ELUDED_TO", "NEED_TO_VBG",
+#                 "SOME_WHAT_JJ", "BUILD_OFF_OF", "ANY_WHERE",
+#                 "MODAL_OF", "LOT_S", "INCASE_OF", 
+#                 "HOW_EVER","ONE_ORE")
                 
 
 disregard_typography <- c("SENTENCE_WHITESPACE", "EN_QUOTES", 
@@ -552,41 +551,41 @@ disregard_typography <- c("SENTENCE_WHITESPACE", "EN_QUOTES",
                           "WRONG_APOSTROPHE")
 
 
-keep_typography <- c("SPURIOUS_APOSTROPHE", "APOSTROPHE_IN_DAYS")
+# keep_typography <- c("SPURIOUS_APOSTROPHE", "APOSTROPHE_IN_DAYS")
 
 
-keep_confused <- c("LESS_MORE_THEN",  "DOSE_DOES", 
-                   "TO_TOO", # (some mistakes) 
-                   "INSURE_THAT",  "COMMA_THAN", # (some mistakes)
-                   "KNOW_NOW", # (some mistakes)
-                   "MAY_MANY", "THERE_THEIR",
-                   "DO_TO", "THERE_OWN", "YOUR_NN",
-                   "LOSE_LOSS", "TOO_TO", 
-                   "NO_NOT", "THE_LATER_LATTER",
-                   "YOUR", "SOMETIME_SOMETIMES",
-                   "ASK_WETHER", "THEY_WHERE",
-                   "AND_THAN", "TAT", "ARCHITECT_VERB",
-                   "AFFECT_EFFECT", "YO_TO",
-                   "CONFUSION_OF_MANS_MEN", "CLEAN_UP",
-                   "RATHER_THEN", "ADJECTIVE_ADVERB",
-                   "THEIR_IS", "CALENDER",
-                   "AN_AND", "INTENT_INTEND",
-                   "COULD_OF", "ASSES_ASSESS",
-                   "DELIVERY_DELIVER", "THING_THINK",
-                   "IN_PRINCIPAL", "THAT_THAN", 
-                   "WORK_AS_A_CHARM", "DEPENDENT",
-                   "WHAT_IT_HAPPENING", "FORE_FOR",
-                   "TRAIL_TRIAL", "PRECEDENT_PRECEDENCE",
-                   "BACK_IN_FORTH",  "TROUGH_THROUGH", 
-                   "IT_SEAMS", "GIVE_ADVISE", "ANS_AND", 
-                   "CONFUSION_OF_SATE_STATE", "BACK_IN_FORTH",
-                   "TROUGH_THROUGH", "IT_SEAMS",
-                   "GIVE_ADVISE", "ANS_AND",
-                   "CONFUSION_OF_SATE_STATE", 
-                   "QUIET_QUITE", "BESIDES_BESIDE",
-                   "WAN_WANT", "WHAT_IT_THE", "ADVICE_ADVISE",
-                   "BLU_RAY", "MAY_MANY_MY", 
-                   "LOOSE_LOSE", "SINCE_FOR", "NUMBER_OF_NNS")
+# keep_confused <- c("LESS_MORE_THEN",  "DOSE_DOES", 
+#                    "TO_TOO", # (some mistakes) 
+#                    "INSURE_THAT",  "COMMA_THAN", # (some mistakes)
+#                    "KNOW_NOW", # (some mistakes)
+#                    "MAY_MANY", "THERE_THEIR",
+#                    "DO_TO", "THERE_OWN", "YOUR_NN",
+#                    "LOSE_LOSS", "TOO_TO", 
+#                    "NO_NOT", "THE_LATER_LATTER",
+#                    "YOUR", "SOMETIME_SOMETIMES",
+#                    "ASK_WETHER", "THEY_WHERE",
+#                    "AND_THAN", "TAT", "ARCHITECT_VERB",
+#                    "AFFECT_EFFECT", "YO_TO",
+#                    "CONFUSION_OF_MANS_MEN", "CLEAN_UP",
+#                    "RATHER_THEN", "ADJECTIVE_ADVERB",
+#                    "THEIR_IS", "CALENDER",
+#                    "AN_AND", "INTENT_INTEND",
+#                    "COULD_OF", "ASSES_ASSESS",
+#                    "DELIVERY_DELIVER", "THING_THINK",
+#                    "IN_PRINCIPAL", "THAT_THAN", 
+#                    "WORK_AS_A_CHARM", "DEPENDENT",
+#                    "WHAT_IT_HAPPENING", "FORE_FOR",
+#                    "TRAIL_TRIAL", "PRECEDENT_PRECEDENCE",
+#                    "BACK_IN_FORTH",  "TROUGH_THROUGH", 
+#                    "IT_SEAMS", "GIVE_ADVISE", "ANS_AND", 
+#                    "CONFUSION_OF_SATE_STATE", "BACK_IN_FORTH",
+#                    "TROUGH_THROUGH", "IT_SEAMS",
+#                    "GIVE_ADVISE", "ANS_AND",
+#                    "CONFUSION_OF_SATE_STATE", 
+#                    "QUIET_QUITE", "BESIDES_BESIDE",
+#                    "WAN_WANT", "WHAT_IT_THE", "ADVICE_ADVISE",
+#                    "BLU_RAY", "MAY_MANY_MY", 
+#                    "LOOSE_LOSE", "SINCE_FOR", "NUMBER_OF_NNS")
 
 disregard_confused <- c("RED_READ", 
                         "NO_KNOW", "LOG_IN", 
@@ -598,83 +597,83 @@ disregard_confused <- c("RED_READ",
                         "ECONOMICAL_ECONOMIC")
 
 
-keep_grammar <- c("CA_FOLLOW_UP", "MD_BASEFORM", "DOSNT",
-                  "THERE_S_MANY", "IT_VBZ", "MOST_COMPARATIVE",
-                  "TWITTER", "HAVE_PART_AGREEMENT", "A_NNS",
-                  "ON_SKYPE", "ADMIT_ENJOY_VB", #(some errors)
-                  "PLURAL_VERB_AFTER_THIS", "HOLDER_COMPOUNDS",
-                  "PERS_PRONOUN_AGREEMENT", "IN_WHO",
-                  "MCDONALDS", "MISSING_TO_BEFORE_A_VERB", #(some errors) 
-                  "HE_VERB_AGR", "MOST_SOME_OF_NNS",
-                  "ADVISE_VBG", "WILL_BASED_ON", 
-                  "BEEN_PART_AGREEMENT", "BUILT_IN_HYPHEN",
-                  "WAY_COMPOUNDS", "DT_DT", "NON3PRS_VERB",
-                  "THE_THEY", "DEPEND_ON", "MOST_OF_THE_TIMES",
-                  "IF_VB_PCT", "ALL_NN", "MICROSOFT_PRODUCTS",
-                  "HE_D_VBD","THERE_VBP_NN", "EVERY_EACH_SINGULAR",
-                  "THE_SAME_AS", "THIS_MISSING_VERB",
-                  "MAN_COMPOUNDS", "FEWER_LESS", "A_GOOGLE",
-                  "PRP_HAVE_VB", "BUNCH_OF", "PLACE_COMPOUNDS",
-                  "AFTERMARKET", "MD_BE_NON_VBP",
-                  "A_INFORMATION", "PRP_VBG", "THE_WORSE_OF", 
-                  "EVER_NN", "PRINT_COMPOUNDS",
-                  "ACCORDING_TO_ME", "KIND_OF_A",
-                  "HOUSE_COMPOUNDS", "COMP_THAN", "WOLD_WOULD",
-                  "ALL_MOST_SOME_OF_NOUN", "AM_I", "SOME_FACULTY",
-                  "YOUR_RE", "THEIR_S", "U_RE", "MANY_NN", 
-                  "AGREEMENT_SENT_START",
-                  "AUXILIARY_DO_WITH_INCORRECT_VERB_FORM",
-                  "LOTS_OF_NN", "THIS_NNS", "NON_ACTION_CONTINUOUS",
-                  "DOUBLE_NEGATIVE", "COPY_PASTE",
-                  "AFFORD_VBG", "AFFORD_VBG", "THERE_RE_MANY",
-                  "A_RB_NN", "RELATIVE_CLAUSE_AGREEMENT",
-                  "AFFORD_VBG", "AFFORD_VBG", "THERE_RE_MANY",
-                  "A_RB_NN", "RELATIVE_CLAUSE_AGREEMENT",
-                  "TO_NON_BASE", "YOU_TUBE", "SOFTWARES",
-                  "NEITHER_NOR",  "MUCH_COUNTABLE", "OVER_COMPOUNDS",
-                  "LINE_COMPOUNDS", "CONDITIONAL_CLAUSE", "PRP_RB_JJ",
-                  "DOES_X_HAS", "AND_END", "RELY_ON", "A_UNCOUNTABLE",
-                  "THERE_MISSING_VERB", "BREAKER_COMPOUNDS",
-                  "SUPPOSE_TO", "A_BIT", "CD_NN", "LIFE_COMPOUNDS",
-                  "MORE_A_JJ", "SINGULAR_VERB_AFTER_THESE_OR_THOSE",
-                  "EXPLAIN_TO", "A_LOT_OF_NN", "MANY_NN_U",
-                  "THERE_WAS_MANY", "SINGULAR_AGREEMENT_SENT_START",
-                  "IN_THE_MEAN_TIME_PHRASE", "IN_TERM_OF_PHRASE", 
-                  "SIGN_INTO", "PRP_PAST_PART", "ALLOW_TO_DO",
-                  "COUNTER_COMPOUNDS", "DID_BASEFORM", "PROGRESSIVE_VERBS",
-                  "PEOPLE_VBZ", "THE_MOST", "HOMO_SAPIENS", "TO_RB_TO_VB",
-                  "UP_COMPOUNDS",  "PRP_HAVES",  "BOTH_AS_WELL_AS",
-                  "DID_FOUND_AMBIGUOUS", "DOES_NP_VBZ", "WHAT_IS_YOU",
-                  "SUPERIOR_THAN_TO", "THE_ARE", "PRP_DON",
-                  "BASE_FORM", "ONE_PLURAL", "ON_COMPOUNDS",
-                  "HAPPY_EASTER", "DID_PAST", "MISSING_ARTICLE", 
-                  "NOTE_COMPOUNDS", "SOME_NN_VBP", "GAMEBOY",
-                  "HE_NEED", "I_MA", "IN_WEEKDAY", "BE_VBP_IN",
-                  "AFFORD_VB", "IF_THERE", "AGREEMENT_SENT_START_2",
-                  "EQUALLY_AS", "PRP_FOND", "BACK_COMPOUNDS",
-                  "THE_BEST_WAY", "CROSS_COMPOUNDS",
-                  "PRP_RB_NO_VB", "HAD_VBP", "A_CD_NNS",
-                  "ALLOW_TO","BE_NO_VB", "BE_NO_VB", "A_BIT_OF",
-                  "SPLITTED", "ON_FIRST_GLANCE", "AN_ANOTHER",
-                  "SUPERLATIVE_THAN", "CAUSE_BECAUSE", "DIE_DICE",
-                  "EYE_COMPOUNDS", "STRIKED", 
-                  "THANK_FULL", "TWO_CONNECTED_MODAL_VERBS", "IS_VBZ",
-                  "THERE_AFTER", "MATE_COMPOUNDS", "BE_TO_VBG",
-                  "MANY_TIME", "PROOF_COMPOUNDS", 
-                  "FURTHER_MORE_COMPOUND", "HARDWARES",
-                  "THESE_ONES", "IT_ITS", "AS_ADJ_AS", "DOESENT",
-                  "TAKEAWAY", "SHORT_COMPARATIVES",  "REGARDING_TO",
-                  "HEAD_COMPOUNDS", "DO_HE_VERB", 
-                  "DETERMINER_GEOGRAPHICAL_WORD",  "ABLE_VBP",
-                  "WORK_AROUND_COMPOUND", "DOWN_COMPOUNDS", 
-                  "WOULD_BE_JJ_VB", "POSSESSIVE_CASE", "WHAT_TO_VBD", 
-                  "TOO_EITHER", "DT_RB_IN", "THIS_NNS_VB",
-                  "SHIP_COMPOUNDS", "PRP_NO_VB", 
-                  "THE_EXACTLY_THE", "BELIVE_BELIEVE", 
-                  "MOST_SUPERLATIVE", "THIS_TOOLS",
-                  "I_NOT_JJ", "DO_VBZ", "BE_INTEREST_IN", 
-                  "AN_VB_PRP", #(with mistakes)
-                  "IT_IT", "A_MD_VB", "A_COMPLAIN")
+# keep_grammar <- c("CA_FOLLOW_UP", "MD_BASEFORM", "DOSNT",
+#                   "THERE_S_MANY", "IT_VBZ", "MOST_COMPARATIVE",
+#                   "TWITTER", "HAVE_PART_AGREEMENT", "A_NNS",
+#                   "ON_SKYPE", "ADMIT_ENJOY_VB", #(some errors)
+#                   "PLURAL_VERB_AFTER_THIS", "HOLDER_COMPOUNDS",
+#                   "PERS_PRONOUN_AGREEMENT", "IN_WHO",
+#                   "MCDONALDS", "MISSING_TO_BEFORE_A_VERB", #(some errors) 
+#                   "HE_VERB_AGR", "MOST_SOME_OF_NNS",
+#                   "ADVISE_VBG", "WILL_BASED_ON", 
+#                   "BEEN_PART_AGREEMENT", "BUILT_IN_HYPHEN",
+#                   "WAY_COMPOUNDS", "DT_DT", "NON3PRS_VERB",
+#                   "THE_THEY", "DEPEND_ON", "MOST_OF_THE_TIMES",
+#                   "IF_VB_PCT", "ALL_NN", "MICROSOFT_PRODUCTS",
+#                   "HE_D_VBD","THERE_VBP_NN", "EVERY_EACH_SINGULAR",
+#                   "THE_SAME_AS", "THIS_MISSING_VERB",
+#                   "MAN_COMPOUNDS", "FEWER_LESS", "A_GOOGLE",
+#                   "PRP_HAVE_VB", "BUNCH_OF", "PLACE_COMPOUNDS",
+#                   "AFTERMARKET", "MD_BE_NON_VBP",
+#                   "A_INFORMATION", "PRP_VBG", "THE_WORSE_OF", 
+#                   "EVER_NN", "PRINT_COMPOUNDS",
+#                   "ACCORDING_TO_ME", "KIND_OF_A",
+#                   "HOUSE_COMPOUNDS", "COMP_THAN", "WOLD_WOULD",
+#                   "ALL_MOST_SOME_OF_NOUN", "AM_I", "SOME_FACULTY",
+#                   "YOUR_RE", "THEIR_S", "U_RE", "MANY_NN", 
+#                   "AGREEMENT_SENT_START",
+#                   "AUXILIARY_DO_WITH_INCORRECT_VERB_FORM",
+#                   "LOTS_OF_NN", "THIS_NNS", "NON_ACTION_CONTINUOUS",
+#                   "DOUBLE_NEGATIVE", "COPY_PASTE",
+#                   "AFFORD_VBG", "AFFORD_VBG", "THERE_RE_MANY",
+#                   "A_RB_NN", "RELATIVE_CLAUSE_AGREEMENT",
+#                   "AFFORD_VBG", "AFFORD_VBG", "THERE_RE_MANY",
+#                   "A_RB_NN", "RELATIVE_CLAUSE_AGREEMENT",
+#                   "TO_NON_BASE", "YOU_TUBE", "SOFTWARES",
+#                   "NEITHER_NOR",  "MUCH_COUNTABLE", "OVER_COMPOUNDS",
+#                   "LINE_COMPOUNDS", "CONDITIONAL_CLAUSE", "PRP_RB_JJ",
+#                   "DOES_X_HAS", "AND_END", "RELY_ON", "A_UNCOUNTABLE",
+#                   "THERE_MISSING_VERB", "BREAKER_COMPOUNDS",
+#                   "SUPPOSE_TO", "A_BIT", "CD_NN", "LIFE_COMPOUNDS",
+#                   "MORE_A_JJ", "SINGULAR_VERB_AFTER_THESE_OR_THOSE",
+#                   "EXPLAIN_TO", "A_LOT_OF_NN", "MANY_NN_U",
+#                   "THERE_WAS_MANY", "SINGULAR_AGREEMENT_SENT_START",
+#                   "IN_THE_MEAN_TIME_PHRASE", "IN_TERM_OF_PHRASE", 
+#                   "SIGN_INTO", "PRP_PAST_PART", "ALLOW_TO_DO",
+#                   "COUNTER_COMPOUNDS", "DID_BASEFORM", "PROGRESSIVE_VERBS",
+#                   "PEOPLE_VBZ", "THE_MOST", "HOMO_SAPIENS", "TO_RB_TO_VB",
+#                   "UP_COMPOUNDS",  "PRP_HAVES",  "BOTH_AS_WELL_AS",
+#                   "DID_FOUND_AMBIGUOUS", "DOES_NP_VBZ", "WHAT_IS_YOU",
+#                   "SUPERIOR_THAN_TO", "THE_ARE", "PRP_DON",
+#                   "BASE_FORM", "ONE_PLURAL", "ON_COMPOUNDS",
+#                   "HAPPY_EASTER", "DID_PAST", "MISSING_ARTICLE", 
+#                   "NOTE_COMPOUNDS", "SOME_NN_VBP", "GAMEBOY",
+#                   "HE_NEED", "I_MA", "IN_WEEKDAY", "BE_VBP_IN",
+#                   "AFFORD_VB", "IF_THERE", "AGREEMENT_SENT_START_2",
+#                   "EQUALLY_AS", "PRP_FOND", "BACK_COMPOUNDS",
+#                   "THE_BEST_WAY", "CROSS_COMPOUNDS",
+#                   "PRP_RB_NO_VB", "HAD_VBP", "A_CD_NNS",
+#                   "ALLOW_TO","BE_NO_VB", "BE_NO_VB", "A_BIT_OF",
+#                   "SPLITTED", "ON_FIRST_GLANCE", "AN_ANOTHER",
+#                   "SUPERLATIVE_THAN", "CAUSE_BECAUSE", "DIE_DICE",
+#                   "EYE_COMPOUNDS", "STRIKED", 
+#                   "THANK_FULL", "TWO_CONNECTED_MODAL_VERBS", "IS_VBZ",
+#                   "THERE_AFTER", "MATE_COMPOUNDS", "BE_TO_VBG",
+#                   "MANY_TIME", "PROOF_COMPOUNDS", 
+#                   "FURTHER_MORE_COMPOUND", "HARDWARES",
+#                   "THESE_ONES", "IT_ITS", "AS_ADJ_AS", "DOESENT",
+#                   "TAKEAWAY", "SHORT_COMPARATIVES",  "REGARDING_TO",
+#                   "HEAD_COMPOUNDS", "DO_HE_VERB", 
+#                   "DETERMINER_GEOGRAPHICAL_WORD",  "ABLE_VBP",
+#                   "WORK_AROUND_COMPOUND", "DOWN_COMPOUNDS", 
+#                   "WOULD_BE_JJ_VB", "POSSESSIVE_CASE", "WHAT_TO_VBD", 
+#                   "TOO_EITHER", "DT_RB_IN", "THIS_NNS_VB",
+#                   "SHIP_COMPOUNDS", "PRP_NO_VB", 
+#                   "THE_EXACTLY_THE", "BELIVE_BELIEVE", 
+#                   "MOST_SUPERLATIVE", "THIS_TOOLS",
+#                   "I_NOT_JJ", "DO_VBZ", "BE_INTEREST_IN", 
+#                   "AN_VB_PRP", #(with mistakes)
+#                   "IT_IT", "A_MD_VB", "A_COMPLAIN")
 
 
 disregard_grammar <- c("A_INFINITIVE", "HEADED_HYPHEN",
@@ -729,31 +728,31 @@ disregard_grammar <- c("A_INFINITIVE", "HEADED_HYPHEN",
                        "INCORRECT_POSSESSIVE_FORM_AFTER_A_NUMBER")
 
 
-keep_misc <- c("EN_A_VS_AN", "EN_COMPOUNDS")
+# keep_misc <- c("EN_A_VS_AN", "EN_COMPOUNDS")
 disregard_misc <- c("ENGLISH_WORD_REPEAT_RULE", "EN_WORD_COHERENCY")
 
-keep_casing <- c("EN_SPECIFIC_CASE")
+# keep_casing <- c("EN_SPECIFIC_CASE")
 disregard_casing <- c("UPPERCASE_SENTENCE_START", 
                          "LINKEDIN", "PAYPAL", 
                          "YOUTUBE", "LC_AFTER_PERIOD", 
                          "THE_FRENCH", "GITHUB", "WORDPRESS")
 
-keep_collocations <- c("ON_IN_THE_AFTERNOON", "INDEPENDENTLY_FROM_OF", 
-                       "RETURN_IN_THE", "ARRIVAL_TO_THE_HOUSE",
-                       "BY_EXAMPLE", "ON_IN_THE_CORNER",
-                       "HIDE_OF_FROM", "ENTER_IN", "IN_AT_THE_TOP",
-                       "IN_ON_THE_RIGHT_HAND_SIDE", "GOOD_IN_AT_GERUND",
-                       "IT_IS_SURE", "ACCUSTOM_WITH_TO",
-                       "ASK_TO", "IN_THE_INTERNET", "WORRY_FOR",
-                       "ARRIVE_ON_AT_THE_BEACH", "LOT_OF",
-                       "ATD_VERBS_TO_COLLOCATION","A_MY",
-                       "CONSEQUENCES_OF_FOR", "ACCOMPANY_WITH",
-                       "INTEREST_ABOUT_IN", "FULL_WITH_OF", "DAMAGE_OF_TO")
+# keep_collocations <- c("ON_IN_THE_AFTERNOON", "INDEPENDENTLY_FROM_OF", 
+#                        "RETURN_IN_THE", "ARRIVAL_TO_THE_HOUSE",
+#                        "BY_EXAMPLE", "ON_IN_THE_CORNER",
+#                        "HIDE_OF_FROM", "ENTER_IN", "IN_AT_THE_TOP",
+#                        "IN_ON_THE_RIGHT_HAND_SIDE", "GOOD_IN_AT_GERUND",
+#                        "IT_IS_SURE", "ACCUSTOM_WITH_TO",
+#                        "ASK_TO", "IN_THE_INTERNET", "WORRY_FOR",
+#                        "ARRIVE_ON_AT_THE_BEACH", "LOT_OF",
+#                        "ATD_VERBS_TO_COLLOCATION","A_MY",
+#                        "CONSEQUENCES_OF_FOR", "ACCOMPANY_WITH",
+#                        "INTEREST_ABOUT_IN", "FULL_WITH_OF", "DAMAGE_OF_TO")
 
 disregard_collocations <- c("NON_ANTI_JJ", "MENTION_ABOUT", "MISSING_PREPOSITION",
                             "ADVERTISEMENT_OF_FOR","IN_FACEBOOK")
 
-keep_nostd <- c("IN_OR_WITH_REGARDS_TO_OF",  "INFORMATIONS",  "THE_QUESTION_WH")
+# keep_nostd <- c("IN_OR_WITH_REGARDS_TO_OF",  "INFORMATIONS",  "THE_QUESTION_WH")
 
 
 # we don't consider errors the following 
@@ -762,6 +761,10 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                       "BRITISH_ENGLISH", "STYLE", 
                                                       "AMERICAN_ENGLISH_STYLE", 
                                                       "COMPOUNDING")))
+
+# NB.:                                                  
+# STYLE: take it out from grammar, but it could be used to 
+# profile the users (informal, offensive, etc. )
 
 # remove COMMA_PARENTHESIS_WHITESPACE could be due to the previous text cleaning steps
 grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
@@ -774,19 +777,80 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
                                                     disregard_casing, 
                                                     disregard_collocations)))
 
+rm(disregard_punctuation, 
+     disregard_typos, 
+     disregard_typography,
+     disregard_confused, 
+     disregard_grammar, 
+     disregard_misc, 
+     disregard_casing, 
+     disregard_collocations, i)
 
-# # TODO -  CHECK THE COMMENTS ABOVE
-# # remove messages that refers to British English
-# # clean up using the message column
-# tmp_str = "Possible spelling mistake. ‘optimise’ is British English."
-# substr(tmp_str, nchar(tmp_str) - 15, nchar(tmp_str)) != "British English."
-# > foo <- subset(typos, ruleId == "MORFOLOGIK_RULE_EN_US")
-# > foo <- subset(typos, substr(message, nchar(message) - 15, nchar(message)) != "British English.")
+# DISREGARD THE ERRORS FURTHER DUE TO THEIR PECULIARITY
+"MORFOLOGIK_RULE_EN_US"
 
-# NB.:                                                  
-# STYLE: take out from grammar, but it could be used to profile the users (informal, offensive, etc. )
+# remove messages that refers to British English
+
+grammar_spelling_analysis <- subset(grammar_spelling_analysis, 
+              substr(message, nchar(message) - 15, nchar(message)) != "British English.")
 
 
+
+tmp <- subset(grammar_spelling_analysis, ruleId == "MORFOLOGIK_RULE_EN_US") 
+
+tmp$originalError <- NA
+
+for (i in seq(nrow(tmp))){
+  gs_Id <- tmp$Id[i]
+  originalText <- subset(data_str_tr, Id == gs_Id)$bodyWithoutHTML
+  
+  start <- tmp$offset[i]
+  end <- tmp$errorLength[i]
+  
+  tmp$originalError[i] <- str_trim(substr(originalText, start, start+end))
+}
+
+rm(start, end, originalText, gs_Id)
+
+# remove all errors around proper names/words that contains capital letters
+tmp <- subset(tmp, !grepl("[[:upper:]]", originalError))
+
+# remove words that contains punctuation
+tmp <- subset(tmp, !grepl("[[:punct:]]", originalError))
+# remove single letter words greater than 3
+tmp <- subset(tmp, !grepl("(\\w)\\1{3,}", originalError)) 
+
+
+tmp_str = "Possible spelling mistake. ‘optimise’ is British English."
+substr(tmp_str, nchar(tmp_str) - 15, nchar(tmp_str)) != "British English."
+foo <- subset(typos, ruleId == "MORFOLOGIK_RULE_EN_US")
+foo <- subset(typos, substr(message, nchar(message) - 15, nchar(message)) != "British English.")
+
+
+
+# Accepted words by the community (community dictionary)
+community_dictionary <- c("gmail", "mrs", "mr", "signup", "textbox" , "woopra",  
+                          "javascript", "choroplethic", "chartbeat", "clicky" ,                                   
+                          "divs", "cacheable", "css", "mockup", "facebook", "emptor",
+                          "ajax", "trojan", "diceware", "megacorp", "regedit", 
+                          "html", "wireframing", "de", "guids", "clickheat", "url", 
+                          "alternativeto", "ios", "datepicker", "toolset", "ux", 
+                          "os", "filepicker", "gui", "conceptshare", "lede",  
+                          "shortcode", "bcc", "eg", "sparklines", "usb", "mockups", 
+                          "bmml", "stackexchange", "spamassassin", "craigslist" ,
+                          "gutshot", "jquery", "rb", "techcrunch", "treemap", 
+                          "sftp",  "multitouch", "comboboxes", "mliebelt", "esc", 
+                          "iframed", "outliners", "outliner", "tradeoff", "xkcd", 
+                          "bbc", "linux", "whatterz", "blogpost", "highscore",
+                          "refuseniks", "omnigraffle", "pâte", "fermente",  
+                          "fugasse", "typeahead", "peteorpeter" , "datatable",       
+                          "opensource", "rp", "pdf", "listbox", "txt", "onclick",                 
+                          "wordlist", "interpunctuation", "mailto", "microformats", 
+                          "userscript", "microdata", "webapp", "screenshare", 
+                          "gamelet", "facebookemail", "facebookid","adrianh", 
+                          "cpu", "winforms", "reddit", "severities", "gridwork", 
+                          "lightbox", "webserver",  "lipsums", "onblur", 
+                          "scannable", "arial",  "paginators")
 
 
 
