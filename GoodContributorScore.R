@@ -17,10 +17,6 @@ library(purrr)
 setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data")
 data_str_tr <- read.csv("data_str_tr_04_gt_ft.csv", stringsAsFactors = FALSE)
 
-
-# Deduce good contributors by the first answer's characteristics
-data_str_tr <- subset(data_str_tr, event == 1)
-
 # drop columns
 data_str_tr <- data_str_tr[ , -which(names(data_str_tr) %in%
                                        c("LastActivityDate", "LastAccessDate", 
@@ -30,8 +26,59 @@ data_str_tr <- data_str_tr[ , -which(names(data_str_tr) %in%
                                          "AccountId", "start_tenure", "tenure",
                                          "weekday", "Autobiographer"))]
 
+# Link to external resources + context on Initial Body
 
-# 1. Changes the author made on their own answers 
+# ## Revisions API call
+# # Create urls for call from scrapy to the revision id api
+# 
+# revisions <- data.frame(paste0("https://api.stackexchange.com/2.2/posts/",
+#                                unique(data_str_tr$Id),
+#                                "/revisions?site=ux&filter=withbody&page=1&pagesize=100&key=G0yd6IHl5kBtkBtsNU*4dg(("))
+# names(revisions) <- "url"
+# 
+# write.csv(revisions,
+#           "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/urls_revisions_api.csv",
+#           row.names = FALSE)
+# 
+# rm(revisions)
+
+# Check what we have already collected
+
+# urls_revisions_api <- read.csv(file="./urls_revisions_api.csv", stringsAsFactors=FALSE)
+setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw")
+
+revisions_info <- read.csv(file="./revisions_info.csv", 
+                           encoding = "UTF-8", 
+                           stringsAsFactors=FALSE)
+
+# urls_revisions_api <- urls_revisions_api %>% extract(col = url, into = "post_id",
+#                                                        regex = "posts/(\\d+)/", remove = FALSE)
+# 
+# urls_revisions_api <- urls_revisions_api %>%
+#   filter(!(post_id %in% unique(revisions_info$post_id)))
+# 
+# urls_revisions_api$post_id <- NULL
+# 
+# # 57 answers that have been deleted at the time of data extraction
+# # update urls associated api with the missing requests
+# write.csv(urls_revisions_api, "./urls_revisions_api.csv", row.names = FALSE)
+# 
+# rm(urls_revisions_api)
+
+# COLLECT INITIAL BODY FOR THE ANSWER
+keep <- c("post_id", "revision_number", "body")
+revisions_info <- revisions_info[, which(names(revisions_info) %in% keep)]
+revisions_info <- subset(revisions_info, revision_number == 1)
+revisions_info <- revisions_info[!duplicated(revisions_info), ]
+
+
+data_str_tr <- merge(data_str_tr, revisions_info[, c("post_id", "body")], 
+                     by.x = "Id", by.y = "post_id", all.x = TRUE)
+
+# missing body due to the answer being deleted
+rm(revisions_info, keep)
+
+# Changes the author made on their own answers 
 # Consider all the changes the answer went through before the next post
 setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw")
 PostHistory <- read.csv(file="./PostHistory.csv",stringsAsFactors=FALSE)
@@ -45,7 +92,7 @@ rm(PostHistoryTypes)
 
 # subset to changes in the answer made by the same author of the post 
 PostHistory <- subset(PostHistory, PostId %in% unique(data_str_tr$Id))
-PostHistory <- merge(PostHistory, data_str_tr[, c("Id", "OwnerUserId")], 
+PostHistory <- merge(PostHistory, data_str_tr[, c("Id", "OwnerUserId", "body")], 
                      by.x = "PostId", by.y = "Id", all.x = TRUE)
 
 PostHistory <- subset(PostHistory, UserId == OwnerUserId)
@@ -73,6 +120,8 @@ keep <- c("Id", "OwnerUserId")
 d.ux.q.00 <- d.ux.q.00[, which(names(d.ux.q.00) %in% keep)]
 names(d.ux.q.00)[length(names(d.ux.q.00))] <- "q_OwnerUserId"
 
+rm(keep)
+
 data_str_tr <- merge(data_str_tr, d.ux.q.00, 
                      by.x = "ParentId", by.y = "Id", all.x = TRUE)
 
@@ -84,143 +133,14 @@ data_str_tr$AnswerOwnQuestion <- ifelse(is.na(data_str_tr$q_OwnerUserId), 0, dat
 data_str_tr$q_OwnerUserId <- NULL
 rm(d.ux.q.00)
 
-# 3 Link to external resources + context on Initial Body
 
-# ## Revisions API call
-# # Create urls for call from scrapy to the revision id api
+# # remove a new line
+# data_str_tr$WithoutHTML <- gsub("\n", " ", data_str_tr$body)
 # 
-# revisions <- data.frame(paste0("https://api.stackexchange.com/2.2/posts/", 
-#                                unique(data_str_tr$Id),
-#                                "/revisions?site=ux&filter=withbody&page=1&pagesize=100&key=G0yd6IHl5kBtkBtsNU*4dg(("))
-# names(revisions) <- "url"
-# 
-# write.csv(revisions, 
-#           "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/urls_revisions_api.csv", 
-#           row.names = FALSE)
-# 
-# rm(revisions)
+# # remove what is inside code
+# data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", "", 
+#                                 data_str_tr$WithoutHTML)
 
-# Check what we have already collected
-
-# urls_revisions_api <- read.csv(file="./urls_revisions_api.csv", stringsAsFactors=FALSE)
-revisions_info <- read.csv(file="./revisions_info.csv", 
-                           encoding = "UTF-8", 
-                           stringsAsFactors=FALSE)
-revisions_info <- unique(revisions_info)
-
-# urls_revisions_api <- urls_revisions_api %>% extract(col = url, into = "post_id",  
-#                                                        regex = "posts/(\\d+)/", remove = FALSE)
-# 
-# urls_revisions_api <- urls_revisions_api %>%
-#   filter(!(post_id %in% unique(revisions_info$post_id)))
-
-# urls_revisions_api$post_id <- NULL
-# 
-# # update urls associated api with the missing requests
-# write.csv(urls_revisions_api, "./urls_revisions_api.csv", row.names = FALSE)
-# 
-# rm(urls_revisions_api)
-
-# COLLECT INITIAL BODY FOR THE ANSWER
-keep <- c("post_id", "revision_number", "body")
-revisions_info <- revisions_info[, which(names(revisions_info) %in% keep)]
-revisions_info <- subset(revisions_info, revision_number == 1)
-
-data_str_tr <- merge(data_str_tr, revisions_info[, c("post_id", "body")], 
-                     by.x = "Id", by.y = "post_id", all.x = TRUE)
-
-# missing body due to the answer being deleted
-rm(revisions_info, keep)
-# Remove users where first answer is deleted
-data_str_tr <- subset(data_str_tr, !is.na(body))
-
-# remove a new line
-data_str_tr$WithoutHTML <- gsub("\n", " ", data_str_tr$body)
-# remove what is inside code
-data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", "", data_str_tr$WithoutHTML)
-
-# # get everything inside the html formatting
-# data_str_tr$WithoutHTML <- gsub("<.*?>", "", data_str_tr$WithoutHTM)
-
-
-# # UTF-8 General Punctuation
-# # Initialize the dataframe and the row count
-# HTML <- data.frame(Id = as.numeric(),
-#                    content = as.character(),
-#                    stringsAsFactors=FALSE)
-# row = 1
-# 
-# for (i in seq(nrow(data_str_tr))) {
-#   content <- str_match_all(data_str_tr$WithoutHTM[i], "(&.*?;)")[[1]][,2]
-# 
-#   if (length(content) != 0) {
-#     for (n in seq(length(content))) {
-#       HTML[row, 1] <- data_str_tr$Id[i]
-#       HTML[row, 2] <- content[n]
-#       row = row + 1
-#     }
-#   }
-# }
-# 
-# HTML_freq <- data.frame(table(HTML$content))
-
-# # remove UTF-8 general punctuation
-# data_str_tr$WithoutHTML <- gsub("&.*?;", "", data_str_tr$WithoutHTML)
-# data_str_tr$WithoutHTML <- gsub("\\s+", " ", str_trim(data_str_tr$WithoutHTML))
-
- 
-# # Initialize the dataframe and the row count
-# HTML <- data.frame(Id = as.numeric(), 
-#                    content = as.character(),
-#                    stringsAsFactors=FALSE) 
-# row = 1 
-# 
-# for (i in seq(nrow(data_str_tr))) {
-#   content <- str_match_all(data_str_tr$body[i], "(<.*?>)")[[1]][,2]
-#   
-#   for (n in seq(length(content))) {
-#     HTML[row, 1] <- data_str_tr$Id[i]
-#     HTML[row, 2] <- content[n]
-#     row = row + 1
-#   }
-# }
-# 
-# 
-# 
-# HTML <- data.frame(str_match_all(data_str_tr$body, "(<.*?>)")[[1]][, 2])
-# colnames(HTML) <- "HTMLcontent"
-# HTML_freq <- data.frame(table(HTML$content))
-
-# # get everything inside remove a new line
-# data_str_tr$BodyClean <- gsub("\n", " ", data_str_tr$body)
-# # Remove html text and list formatting
-# data_str_tr$BodyClean <- gsub("<(\\?|\\/?)(li|p|strong|em|ul|ol|pre|br|hr|h\\d|br|sup|sub|kbd|strike).*?>", 
-#                                "", data_str_tr$BodyClean, ignore.case = TRUE)
-# # </a>, </i>, </b>
-# data_str_tr$BodyClean <- gsub("<\\/?(i|b)>", "", data_str_tr$BodyClean, ignore.case = TRUE)
-# data_str_tr$BodyClean <- gsub("<\\/?(A)>", "", data_str_tr$BodyClean)
-
-# # Initialize the dataframe and the row count
-# HTML <- data.frame(Id = as.numeric(), 
-#                    content = as.character(),
-#                    stringsAsFactors=FALSE) 
-# row = 1 
-# 
-# for (i in seq(nrow(data_str_tr))) {
-#   content <- str_match_all(data_str_tr$BodyClean[i], "(<.*?>)")[[1]][,2]
-# 
-#   if (length(content) != 0) {
-#     for (n in seq(length(content))) {
-#       HTML[row, 1] <- data_str_tr$Id[i]
-#       HTML[row, 2] <- content[n]
-#       row = row + 1
-#     }
-#   }
-# }
-# 
-# HTML_freq <- data.frame(table(HTML$content))
-
-# #Alternative to BodyClean and WithoutHTML for counting words
 # Convenience function to convert html codes
 html2txt <- function(str) {
   xpathApply(htmlParse(str, encoding="UTF-8", asText=TRUE),
@@ -228,7 +148,7 @@ html2txt <- function(str) {
              xmlValue)
 }
 
- 
+# # Calculate bodyWithoutHTML
 # # Initialize the dataframe and the row count
 # textWithoutHTML <- data.frame(Id = as.numeric(),
 #                             content = as.character(),
@@ -237,21 +157,34 @@ html2txt <- function(str) {
 # 
 # 
 # for (i in seq(nrow(data_str_tr))) {
-#   text <- html2txt(data_str_tr$WithoutHTML[i])
-# 
-#   if (length(text) != 0) {
-#     for (n in seq(length(text))) {
-#       textWithoutHTML[row, 1] <- data_str_tr$Id[i]
-#       textWithoutHTML[row, 2] <- text[n]
-#       row = row + 1
-#       }
-#   } else {
+#   
+#   if (is.na(data_str_tr$WithoutHTML[i])) {
+#     
 #     textWithoutHTML[row, 1] <- data_str_tr$Id[i]
 #     textWithoutHTML[row, 2] <- NA
 #     row = row + 1
+#   
+#   } else {
+#     
+#     text <- html2txt(data_str_tr$WithoutHTML[i])
+#     
+#     if (length(text) != 0) {
+#       
+#       for (n in seq(length(text))) {
+#         textWithoutHTML[row, 1] <- data_str_tr$Id[i]
+#         textWithoutHTML[row, 2] <- text[n]
+#         row = row + 1
+#       }
+#       
+#       } else {
+#       textWithoutHTML[row, 1] <- data_str_tr$Id[i]
+#       textWithoutHTML[row, 2] <- NA
+#       row = row + 1
+#       }
 #   }
 # }
 # 
+# # Collapse the different text from the same Id together
 # # Initialize the dataframe and the row count
 # textWithoutHTMLcollapse <- data.frame(Id = as.numeric(),
 #                             bodyWithoutHTML = as.character(),
@@ -274,8 +207,8 @@ html2txt <- function(str) {
 #           "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/textWithoutHTML.csv",
 #           fileEncoding ="UTF-8",
 #           row.names = FALSE)
-
-data_str_tr$WithoutHTML <- NULL
+# 
+# data_str_tr$WithoutHTML <- NULL
 
 textWithoutHTMLcollapse <- read.csv("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw/textWithoutHTML.csv",
                           fileEncoding ="UTF-8", 
@@ -315,29 +248,31 @@ HtmlWords <- data.frame(Id = as.numeric(),
 row = 1
 
 for (i in seq(nrow(data_str_tr))) {
-
-  tmp <- str_match_all(data_str_tr$body[i], "<a href=.*?>(.*?)<\\/a>")[[1]][,2]
   
-  if (length(tmp) != 0) {
-    tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+  if (!is.na(data_str_tr$body[i])) {
+    tmp <- str_match_all(data_str_tr$body[i], "<a href=.*?>(.*?)<\\/a>")[[1]][,2]
     if (length(tmp) != 0) {
-      tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
-      tmp <- gsub("\n", " ", tmp)
-      HtmlWords[row, 1] <- data_str_tr$Id[i]
-      words <- strsplit(tmp, " ")[[1]] # remove empty/blank character string: ""
-      HtmlWords[row, 2] <- length(words[words != ""])
-      row = row + 1
-    }
+      tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+      if (length(tmp) != 0) {
+        tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
+        tmp <- gsub("\n", " ", tmp)
+        HtmlWords[row, 1] <- data_str_tr$Id[i]
+        words <- strsplit(tmp, " ")[[1]] # remove empty/blank character string: ""
+        HtmlWords[row, 2] <- length(words[words != ""])
+        row = row + 1
+      }
+    } 
   }
 }
+
 
 data_str_tr <- merge(data_str_tr, HtmlWords, 
                      by="Id", all.x = TRUE)
 
-rm(HtmlWords, i, row, tmp)
+rm(HtmlWords, i, row, tmp, words)
 
-data_str_tr$HTMLWordsCount <- ifelse(is.na(data_str_tr$HTMLWordsCount), 0, data_str_tr$HTMLWordsCount)
-
+data_str_tr$HTMLWordsCount <- ifelse(is.na(data_str_tr$HTMLWordsCount), 0, 
+                                     data_str_tr$HTMLWordsCount)
 
 
 # count the number of words referenced in a </blockquote>
@@ -348,42 +283,74 @@ row = 1
 
 for (i in seq(nrow(data_str_tr))) {
   
-  tmp <- str_match_all(data_str_tr$body[i], "<blockquote>((.|\\s)*?)</blockquote>")[[1]][,2]
-  if (length(tmp) != 0) {
-    for (m in seq(length(tmp))){
-      tmp[m] <- gsub("<code>(.*?)</code>", "", tmp[m])  # remove <code> frames
-    }
-    
-    tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+  if (!is.na(data_str_tr$body[i])) {
+    tmp <- str_match_all(data_str_tr$body[i], "<blockquote>((.|\\s)*?)</blockquote>")[[1]][,2]
     if (length(tmp) != 0) {
-      tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
-      tmp <- gsub("\n", " ", tmp)
-      RefsWords[row, 1] <- data_str_tr$Id[i]
-      words <- strsplit(tmp, " ")[[1]] # remove empty/blank character string: ""
-      RefsWords[row, 2] <- length(words[words != ""])
-      row = row + 1
+      for (m in seq(length(tmp))){
+        tmp[m] <- gsub("<code>(.*?)</code>", "", tmp[m])  # remove <code> frames
+      }
+      
+      tmp <- html2txt(tmp) # remove html formatting and reference to <img>
+      if (length(tmp) != 0) {
+        tmp <- paste(tmp, collapse = "") # collapse if it is not already in one string
+        tmp <- gsub("\n", " ", tmp)
+        RefsWords[row, 1] <- data_str_tr$Id[i]
+        words <- strsplit(tmp, " ")[[1]] # remove empty/blank character string: ""
+        RefsWords[row, 2] <- length(words[words != ""])
+        row = row + 1
+      }
     }
   }
 }
-
 
 data_str_tr <- merge(data_str_tr, RefsWords, 
                      by="Id", all.x = TRUE)
 
 rm(RefsWords, i, row, tmp, m, words)
 
-data_str_tr$RefsWordsCount <- ifelse(is.na(data_str_tr$RefsWordsCount), 0, data_str_tr$RefsWordsCount)
+data_str_tr$RefsWordsCount <- ifelse(is.na(data_str_tr$RefsWordsCount), 0, 
+                                     data_str_tr$RefsWordsCount)
 
 
 # Words Count
+# Initiate an empty words count
 data_str_tr$WordsCount <- NA
 
 for (i in seq(nrow(data_str_tr))) {
-  words <- strsplit(data_str_tr$bodyWithoutHTML[i], " ")[[1]] # remove empty/blank character string: ""
-  data_str_tr$WordsCount[i] <- length(words[words != ""])
   
+  if (!is.na(data_str_tr$bodyWithoutHTML[i])) {
+  
+    # remove empty/blank character string: ""
+    words <- strsplit(data_str_tr$bodyWithoutHTML[i], " ")[[1]] 
+    data_str_tr$WordsCount[i] <- length(words[words != ""])
+  }
 }
+
 rm(i, words)
+
+data_str_tr$WordsCount <- ifelse(is.na(data_str_tr$WordsCount), 0, 
+                                 data_str_tr$WordsCount)
+
+# # Adjust difference between NA and 0
+# EditOwnAnswer: even if the post was deleted there is some 
+# information about it in revision. Thus, if
+# it is missing consider it as zero.
+# AnswerOwnQuestion: NAs in the question OwnerUserId represent 
+# unregister or deleted users. In our
+# analysis users are all registered and 
+# with an active. Thus, treat NAs as 0
+
+# For "HTMLWordsCount", "RefsWordsCount"  and  "WordsCount" 
+# if body is missing they are also missing values
+data_str_tr$HTMLWordsCount <- ifelse(is.na(data_str_tr$body), NA,
+                                     data_str_tr$HTMLWordsCount)
+
+data_str_tr$RefsWordsCount <- ifelse(is.na(data_str_tr$body), NA,
+                                     data_str_tr$RefsWordsCount)
+
+data_str_tr$WordsCount <- ifelse(is.na(data_str_tr$body), NA, 
+                                 data_str_tr$WordsCount)
+
 
 # % words quoted and linked to external source
 data_str_tr$externalSource_pct <- round(((data_str_tr$HTMLWordsCount + data_str_tr$RefsWordsCount)
@@ -417,14 +384,21 @@ data_str_tr$externalSource_pct <- round(((data_str_tr$HTMLWordsCount + data_str_
 data_str_tr$ImgCount <- NA
 
 for (i in seq(nrow(data_str_tr))) {
-  data_str_tr$ImgCount[i] <- length(str_match_all(data_str_tr$body[i], "(<img src=.*?/>)")[[1]][,2])
+  
+  if (!is.na(data_str_tr$body[i])) {
+    data_str_tr$ImgCount[i] <- length(str_match_all(data_str_tr$body[i], 
+                                                    "(<img src=.*?/>)")[[1]][,2])
+  }
 }
 
 # Code Snippet Count 
 data_str_tr$CodeCount <- NA
 
 for (i in seq(nrow(data_str_tr))) {
-  data_str_tr$CodeCount[i] <- length(str_match_all(data_str_tr$body[i], "(<code>.*?</code>)")[[1]][,2])
+  if (!is.na(data_str_tr$body[i])) {
+    data_str_tr$CodeCount[i] <- length(str_match_all(data_str_tr$body[i], 
+                                                     "(<code>.*?</code>)")[[1]][,2])
+  }
 }
 
 data_str_tr$Mockups <- data_str_tr$ImgCount + data_str_tr$CodeCount
@@ -803,10 +777,12 @@ grammar_spelling_analysis <- subset(grammar_spelling_analysis,
 data_str_tr$grammarErrors <- NA
 
 for (i in seq(nrow(data_str_tr))) {
-  post_id <- data_str_tr$Id[i]
-  data_str_tr$grammarErrors[i] <- nrow(subset(grammar_spelling_analysis, 
-                                           Id == post_id))
   
+  if (!is.na(data_str_tr$body[i])) {
+    post_id <- data_str_tr$Id[i]
+    data_str_tr$grammarErrors[i] <- nrow(subset(grammar_spelling_analysis, 
+                                             Id == post_id))
+  }
 }
 
 rm(i, post_id)
@@ -823,14 +799,50 @@ reputation <- read.csv("Reputation.csv", stringsAsFactors = FALSE)
 reputation$time_UTC <- as.POSIXct(substr(reputation$time_UTC,1,nchar(reputation$time_UTC)-1), 
                                   format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 
-# Calculate totRep until CreationTime
-reputation_df <- merge(data_str_tr[,c("OwnerUserId", "Id", "CreationDate")], reputation, 
-                       by = "OwnerUserId", all.x = TRUE)
+# OwnerUserId = 11797
+# Id = 107844
+# TotRep = 6856
 
 
-reputation_sum <- reputation_df %>%
-  group_by(Id) %>%
-  summarize(TotRep = sum(reputation[time_UTC <= CreationDate]))
+# Initialize the dataframe and the row count
+ReputationCount_df <- data.frame(Id = as.numeric(), 
+                                 TotRep = as.numeric(),
+                                 stringsAsFactors=FALSE) 
+row = 1
+
+# 1. For all the users
+for (i in unique(data_str_tr$OwnerUserId)) {
+
+  tmp_rep <- subset(reputation, OwnerUserId == i)
+  tmp_data <- subset(data_str_tr, OwnerUserId == i)
+
+  # 2. For each answer check how much reputation the user 
+  # has accumulated before the current answer CreationDate
+  for (n in unique(tmp_data$Id)) {
+    # Store the result in the dataframe
+    ReputationCount_df[row, 1] <- n
+    
+    tmp <- tmp_rep %>%
+      filter(unique(tmp_data$CreationDate[tmp_data$Id == n]) > tmp_rep$time_UTC) %>%
+        select(reputation)
+    
+    if (nrow(tmp) == 0) {
+      
+      ReputationCount_df[row, 2] <- 0
+      row = row + 1
+      
+    } else {
+      
+      ReputationCount_df[row, 2] <- sum(tmp)
+      row = row + 1
+      
+    }
+  }
+}
+
+
+# TODO: fix for missing values in reputation
+# use description to derive the reputation number
 
 # add 1 reputation points to all. 
 # 1 point is given as default when you register 
@@ -842,9 +854,17 @@ data_str_tr <- merge(data_str_tr, reputation_sum,
                      by = "Id", all.x = TRUE)
 rm(reputation, reputation_df, reputation_sum)
 
-data_str_tr$CommunityMotivation <- data_str_tr$EditOwnAnswer + 
-                                        data_str_tr$AnswerOwnQuestion
+# data_str_tr$CommunityMotivation <- data_str_tr$EditOwnAnswer + 
+#                                         data_str_tr$AnswerOwnQuestion
 
+
+# save current file
+write.csv(data_str_tr,
+          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/data_for_clustering.csv",
+          row.names = FALSE)
+
+
+######### CLUSTERING #############
 ## K-MEANS CLUSTERING
 i <- c("CommunityMotivation", 
        "WordsCount", "externalSource_pct", 
