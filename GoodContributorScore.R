@@ -134,12 +134,13 @@ data_str_tr$q_OwnerUserId <- NULL
 rm(d.ux.q.00)
 
 
-# # remove a new line
-# data_str_tr$WithoutHTML <- gsub("\n", " ", data_str_tr$body)
-# 
-# # remove what is inside code
-# data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", "", 
-#                                 data_str_tr$WithoutHTML)
+# remove a new line
+data_str_tr$WithoutHTML <- gsub("\n", " ", data_str_tr$body)
+data_str_tr$body <- gsub("\n", " ", data_str_tr$body)
+
+# remove what is inside code
+data_str_tr$WithoutHTML <- gsub("<code>.*?</code>", "",
+                                data_str_tr$WithoutHTML)
 
 # Convenience function to convert html codes
 html2txt <- function(str) {
@@ -402,7 +403,6 @@ for (i in seq(nrow(data_str_tr))) {
 }
 
 data_str_tr$Mockups <- data_str_tr$ImgCount + data_str_tr$CodeCount
-
 
 # 5. Correct grammar 
 # USE LANGUAGE TOOL PYTHON check for spelling and grammar mistakes
@@ -794,15 +794,25 @@ rm(grammar_spelling_analysis, html2txt)
 # 6. Reputation 
 setwd("C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/raw")
 reputation <- read.csv("Reputation.csv", stringsAsFactors = FALSE) 
+reputation <- reputation[!duplicated(reputation),]
+
+# https://meta.stackexchange.com/questions/7237/how-does-reputation-work
+# Missing values due to the daily cup, own answer accepted, 
+# downvotes over the one point reputation, removed votes
+# N.B. there could be some scraping errors 
+
+reputation$reputation <- ifelse(is.na(reputation$reputation), 0, 
+                                reputation$reputation)
+
+
+# miss_desc <- unique(reputation %>%
+#   filter(is.na(reputation)) %>%
+#   select(description))
+
 
 # time formatting
 reputation$time_UTC <- as.POSIXct(substr(reputation$time_UTC,1,nchar(reputation$time_UTC)-1), 
                                   format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-
-# OwnerUserId = 11797
-# Id = 107844
-# TotRep = 6856
-
 
 # Initialize the dataframe and the row count
 ReputationCount_df <- data.frame(Id = as.numeric(), 
@@ -840,327 +850,23 @@ for (i in unique(data_str_tr$OwnerUserId)) {
   }
 }
 
-
-# TODO: fix for missing values in reputation
-# use description to derive the reputation number
+rm(tmp, tmp_data, tmp_rep)
+rm(i, n, row)
 
 # add 1 reputation points to all. 
 # 1 point is given as default when you register 
-reputation_sum$TotRep <- ifelse(is.na(reputation_sum$TotRep), 0, reputation_sum$TotRep)
-reputation_sum$TotRep <- reputation_sum$TotRep + 1
+ReputationCount_df$TotRep <- ReputationCount_df$TotRep + 1
 
 # Merge
-data_str_tr <- merge(data_str_tr, reputation_sum, 
+data_str_tr <- merge(data_str_tr, ReputationCount_df, 
                      by = "Id", all.x = TRUE)
-rm(reputation, reputation_df, reputation_sum)
+
+rm(reputation, ReputationCount_df)
 
 # data_str_tr$CommunityMotivation <- data_str_tr$EditOwnAnswer + 
 #                                         data_str_tr$AnswerOwnQuestion
 
-
 # save current file
 write.csv(data_str_tr,
-          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/data_for_clustering.csv",
+          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/data_for_CEM.csv",
           row.names = FALSE)
-
-
-######### CLUSTERING #############
-## K-MEANS CLUSTERING
-i <- c("CommunityMotivation", 
-       "WordsCount", "externalSource_pct", 
-       "Mockups", "CorrectGrammarScore", "TotRep")
-
-#Scaling assures that all data columns have a 
-#mean of 0 and standard deviation of 1.
-x <- data_str_tr[, i]
-
-# x$EditOwnAnswer <- as.factor(x$EditOwnAnswer)
-# x$AnswerOwnQuestion <- as.factor(x$AnswerOwnQuestion)
-
-x <- scale(x)
-
-# # https://towardsdatascience.com/hierarchical-clustering-on-categorical-data-in-r-a27e578f2995
-# 
-# gower.dist <- daisy(x, metric = c("gower"))
-# 
-# #------------ DIVISIVE CLUSTERING (DIANA) ------------#
-# # generally better in discovering larger clusters
-# 
-# divisive.clust <- diana(as.matrix(gower.dist), 
-#                         diss = TRUE, keep.diss = TRUE)
-# plot(divisive.clust, main = "Divisive")
-# 
-# #------------ AGGLOMERATIVE CLUSTERING (AGNES)------------#
-# # generally better in discovering larger clusters
-# 
-# # complete
-# aggl.clust.c <- hclust(gower.dist, method = "complete")
-# plot(aggl.clust.c,
-#      main = "Agglomerative, complete linkages")
-# 
-# 
-# # Ward's Method
-# aggl.clust.w <- hclust(gower.dist, method = "ward.D")
-# plot(aggl.clust.w,
-#      main = "Ward's minimum variance method")
-# 
-# 
-# summary stats
-cstats.table <- function(dist, tree, k) {
-  # Initiate the table
-  clust.assess <- c("cluster.number","n","within.cluster.ss","average.within","average.between",
-                    "wb.ratio","dunn2","avg.silwidth")
-  clust.size <- c("cluster.size")
-  stats.names <- c()
-  row.clust <- c()
-  output.stats <- matrix(ncol = k, nrow = length(clust.assess))
-  cluster.sizes <- matrix(ncol = k, nrow = k)
-
-  for(i in c(1:k)){
-    # cluster size name
-    row.clust[i] <- paste0("Cluster-", i, " size")
-  }
-
-  for(i in c(2:k)){
-    stats.names[i] <- paste("Test", i-1)
-
-    # populate the table with the stats
-    for(j in seq_along(clust.assess)){
-      output.stats[j, i] <- unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.assess])[j]
-
-    }
-
-    # add information regarding the cluster size
-    for(d in 1:k) {
-      cluster.sizes[d, i] <- unlist(cluster.stats(d = dist, clustering = cutree(tree, k = i))[clust.size])[d]
-      dim(cluster.sizes[d, i]) <- c(length(cluster.sizes[i]), 1)
-      cluster.sizes[d, i]
-
-    }
-  }
-
-  # Create the dataframe
-  output.stats.df <- data.frame(output.stats)
-  cluster.sizes <- data.frame(cluster.sizes)
-  cluster.sizes[is.na(cluster.sizes)] <- 0
-  # add cluster stats + cluster dimension together
-  rows.all <- c(clust.assess, row.clust)
-  output <- rbind(output.stats.df, cluster.sizes)[ ,-1]
-  colnames(output) <- stats.names[2:k]
-  rownames(output) <- rows.all
-  # assign numeric to all the output
-  is.num <- sapply(output, is.numeric)
-  output[is.num] <- lapply(output[is.num], round, 2)
-  output
-}
-# 
-# # DIVISIVE
-# stats.df.divisive <- cstats.table(gower.dist, divisive.clust, 5)
-# stats.df.divisive
-# 
-# # AGGLOMERATE COMPLETE LINKAGE
-# stats.df.aggl.c <-cstats.table(gower.dist, aggl.clust.c, 5) 
-# #complete linkages looks like the most balanced approach
-# stats.df.aggl.c
-# 
-# AGGLOMERATE WARD'S MIBIMUM VARIANCE
-stats_df_aggl_w <-cstats.table(euclidean_dist, aggl_clust_w, 9)
-#complete linkages looks like the most balanced approach
-stats_df_aggl_w
-# 
-# 
-# 
-# # --------- Choosing the number of clusters ---------#
-# # Elbow
-# # Agglomerative clustering using Ward’s method
-# ggplot(data = data.frame(t(cstats.table(gower.dist, aggl.clust.w, 15))), 
-#        aes(x=cluster.number, y=within.cluster.ss)) + 
-#   geom_point()+
-#   geom_line()+
-#   ggtitle("Agglomerative clustering using Ward’s method") +
-#   labs(x = "Num.of clusters", y = "Within clusters sum of squares (SS)") +
-#   theme(plot.title = element_text(hjust = 0.5))
-# 
-# 
-# # Silhouette
-# # Agglomerative clustering using Ward’s method
-# ggplot(data = data.frame(t(cstats.table(gower.dist, aggl.clust.w, 15))), 
-#        aes(x=cluster.number, y=avg.silwidth)) + 
-#   geom_point()+
-#   geom_line()+
-#   ggtitle("Agglomerative clustering using Ward’s method") +
-#   labs(x = "Num.of clusters", y = "Average silhouette width") +
-#   theme(plot.title = element_text(hjust = 0.5))
-
-
-
-
-## KMEANS
-ks <- c(1:20)
-# calculate total within cluster sum of squares (SS)
-tot_within_ss <- sapply(ks, function(k) {
-  cl <- kmeans(x, k, nstart = 20, iter.max = 50)
-  cl$tot.withinss
-})
-plot(ks, tot_within_ss, type = "b", 
-     xlab = "Number of Clusters", 
-     ylab = "Within groups sum of squares")
-
-
-# HIERARCHICAL CLUSTERING
-euclidean_dist <- daisy(x, metric = c("euclidean"))
-
-# Ward's Method
-aggl_clust_w <- hclust(euclidean_dist, method = "ward.D")
-plot(aggl_clust_w,
-     main = "Ward's minimum variance method")
-
-# --------- Choosing the number of clusters ---------#
-# Elbow
-# Agglomerative clustering using Ward’s method
-
-ggplot(data = data.frame(t(cstats.table(euclidean_dist, aggl_clust_w, 15))),
-       aes(x=cluster.number, y=within.cluster.ss)) +
-  geom_point()+
-  geom_line()+
-  ggtitle("Agglomerative clustering using Ward’s method") +
-  labs(x = "Num.of clusters", y = "Within clusters sum of squares (SS)") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-
-# Silhouette
-# Agglomerative clustering using Ward’s method
-ggplot(data = data.frame(t(cstats.table(euclidean_dist, aggl_clust_w, 15))),
-       aes(x=cluster.number, y=avg.silwidth)) +
-  geom_point()+
-  geom_line()+
-  ggtitle("Agglomerative clustering using Ward’s method") +
-  labs(x = "Num.of clusters", y = "Average silhouette width") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-
-
-# HEATAP VISUALIZATION
-
-clust_num <- cutree(aggl_clust_w, k = 9)
-
-# add Id to x values and the corresponding cluster assignation
-data_str_tr_cl <- data.frame(cbind(data_str_tr[, "Id"], x, clust_num))
-colnames(data_str_tr_cl)[1] <- "Id"
-
-# Report the information in the long format
-data_cl_long <- melt(data.frame(lapply(data_str_tr_cl, as.numeric), stringsAsFactors=FALSE),
-                  id = c("Id", "clust_num"), factorsAsStrings=T)
-
-
-# Create two heatmap:
-# 1 Mean heatmap
-data_cl_long_mean <- data_cl_long %>%
-  group_by(clust_num, variable) %>%
-  summarise(mean = mean(value)) 
-
-
-# Create a mean heatmap
-heatmap_mean <- ggplot(data_cl_long_mean, aes(x = factor(clust_num), 
-                                     y = factor(variable, 
-                                                levels = c("CommunityMotivation", 
-                                                           "WordsCount", "externalSource_pct", 
-                                                           "Mockups", "CorrectGrammarScore", 
-                                                           "TotRep"), ordered = TRUE))) +
-  labs(title = "Distribution of variables across clusters", x = "Cluster number", y = NULL) +               
-  geom_tile(aes(fill = mean), colour = "black")+
-  geom_text(aes(label = round(mean, 2))) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red")
-
-heatmap_mean
-
-# 2 Median heatmap
-data_cl_long_median <- data_cl_long %>%
-  group_by(clust_num, variable) %>%
-  summarise(median = median(value)) 
-
-
-# Create a median heatmap
-heatmap_median <- ggplot(data_cl_long_median, aes(x = factor(clust_num), 
-                                              y = factor(variable, 
-                                                         levels = c("CommunityMotivation", 
-                                                                    "WordsCount", "externalSource_pct", 
-                                                                    "Mockups", "CorrectGrammarScore", 
-                                                                    "TotRep"), ordered = TRUE))) +
-  labs(title = "Distribution of variables across clusters", x = "Cluster number", y = NULL) +               
-  geom_tile(aes(fill = median), colour = "black")+
-  geom_text(aes(label = round(median, 2))) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red")
-
-heatmap_median
-
-# Good clusters: 2, 3, 4, 5, 8, 9 >> 4785 observation
-# Bad clusters: 1, 6, 7 >> 4214 observations
-
-# create an heat map with the made classification of bad and good contributors
-data_good_bad_long <- data_cl_long
-data_good_bad_long$clust_num <- ifelse(data_good_bad_long$clust_num %in% c(2, 3, 4, 5, 8, 9 ), 1, 2)
-
-data_good_bad_long_mean <- data_good_bad_long %>%
-  group_by(clust_num, variable) %>%
-  summarise(mean = mean(value)) 
-
-heatmap_mean_good_bad <- ggplot(data_good_bad_long_mean, aes(x = factor(clust_num), 
-                                              y = factor(variable, 
-                                                         levels = c("CommunityMotivation", 
-                                                                    "WordsCount", "externalSource_pct", 
-                                                                    "Mockups", "CorrectGrammarScore", 
-                                                                    "TotRep"), ordered = TRUE))) +
-  labs(title = "Distribution of variables across clusters", x = "Cluster number", y = NULL) +               
-  geom_tile(aes(fill = mean), colour = "black")+
-  geom_text(aes(label = round(mean, 2))) +
-  scale_fill_gradient2(low = "blue", mid = "white", high = "red")
-
-heatmap_mean_good_bad
-
-# # Results interpretation
-# data_str_tr <- data.frame(cbind(data_str_tr, clust_num))
-# summary(data_str_tr[, i])
-# 
-# sd_summary <- data_str_tr %>%
-#   mutate(CommunityMotivation_sd = sd(CommunityMotivation), 
-#          WordsCount_sd = sd(WordsCount), 
-#          externalSource_pct_sd = sd(externalSource_pct), 
-#          Mockups_sd = sd(Mockups), 
-#          CorrectGrammarScore_sd = sd(CorrectGrammarScore), 
-#          TotRep_sd = sd(TotRep)) %>%
-#   select(CommunityMotivation_sd, WordsCount_sd, externalSource_pct_sd, 
-#          Mockups_sd, CorrectGrammarScore_sd, TotRep_sd)
-# 
-# sd_summary[!duplicated(sd_summary), ]
-# 
-# data_str_tr %>%
-#   select("TotRep") %>%
-#   summary()
-# 
-# sd(data_str_tr$TotRep)
-# 
-# 
-# data_str_tr %>%
-#   select("CommunityMotivation") %>%
-#   filter(clust_num == 3) %>%
-#   summary()
-# 
-# 
-# foo_2<- subset(data_str_tr, clust_num == 2)
-# table(foo_9$CommunityMotivation)
-# 
-# plot(foo_9$Mockups,type="l",col="red")
-# lines(foo_4$Mockups,col="green")
-#
-# rm(foo_1, foo_2, foo_3, foo_4, foo_5, foo_6, foo_7, foo_8, foo_9)
-
-
-# Save Id and cluster assignation
-
-write.csv(data_str_tr_cl[, c("Id", "clust_num")],
-          "C:/Projects/Stack_Exchange/01_motivation_feedback/Answers/data/data_clusters.csv",
-          row.names = FALSE)
-
-
-
