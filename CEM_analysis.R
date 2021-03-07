@@ -235,6 +235,8 @@ ReputationCut <- c(1, 1.5, 11.5, 100.5, 101.5, 151.5, 251.5, max(data_str_tr$Tot
 data.frame(table(cut(data_str_tr$TotRep, 
                      breaks=ReputationCut, include.lowest = TRUE)))
 
+rm(ExternalMax, fd_bin, MockupMax, quintile_breaks, 
+   Scott_bin, sqrt_bin, Sturges_bin, rep_dist, score_dist)
 
 # # validate summarize in a presentation
 # Var1 Freq
@@ -247,8 +249,8 @@ data.frame(table(cut(data_str_tr$TotRep,
 # 7 (252,2.36e+03]  794 > more than 15 upvotes after the association bonus or 25 upvotes, etc.
 
 ##### FIRST TREATMENT: AcceptedByOriginator #####
-# Find the cutpoints for all the dataset
-# then find the weights for each event 
+##### Event 1 ######
+data_1 <- subset(data_str_tr, event == 1)
 
 # L1 statistics
 vars <- c("EditCount", "UpMod", "DownMod", "CommentCount", 
@@ -259,72 +261,157 @@ vars <- c("EditCount", "UpMod", "DownMod", "CommentCount",
 
 imbalance(group=data_1$AcceptedByOriginator, data=data_1[vars])
 
-# 3.2.1. Automated Coarsening
-
-auto_matching <- cem(treatment = "AcceptedByOriginator", data = data_1, 
-                      drop = c("Id", "OwnerUserId", "ParentId", 
-                               "tstart", "tstop", "event",      
-                               "status"), keep.all=TRUE)
-
-# Number of observations matched (retained)
-# Number of observation pruned because not comparable
-
-auto_matching$w
-auto_matching
-
-
-# NUMERICAL
-auto_matching$breaks$Year
-auto_matching$breaks$TenureSE
-auto_matching$breaks$TenureUX
-
-auto_matching$breaks$WordsCount
-auto_matching$breaks$ExternalSource_PCT
-auto_matching$breaks$Mockups
-auto_matching$breaks$CorrectGrammarScore
-auto_matching$breaks$TotRep
-auto_matching$breaks$EditCount
-auto_matching$breaks$CommentCount
-
-
-
 matching <- cem(treatment = "AcceptedByOriginator", data = data_1, 
-                    drop = c("Id", "OwnerUserId", "ParentId", 
-                            "tstart", "tstop", "event",      
-                            "status"), 
-                cutpoints = list(Year=yearcut, TenureSE=SEcut, TenureUX=UXcut,
-                                 WordsCount=c("fd", na.rm = TRUE)))
+                     drop = c("Id", "OwnerUserId", "ParentId", 
+                              "tstart", "tstop", "event",      
+                              "status"), keep.all=TRUE)
+
+# matching <- cem(treatment = "AcceptedByOriginator", data = data_1, 
+#                     drop = c("Id", "OwnerUserId", "ParentId", 
+#                             "tstart", "tstop", "event",      
+#                             "status"), 
+#                 cutpoints = list(Year=yearCut, TenureSE=SECut, TenureUX=UXCut,
+#                                  WordsCount=WordsCut, EditCount=EditCut, 
+#                                  UpMod=UpCut, DownMod=DownCut, 
+#                                  ExternalSource_PCT=ExternalCut, 
+#                                  CommentCount=CommentCut, Mockups=MockCut, 
+#                                  TotRep=ReputationCut, 
+#                                  CorrectGrammarScore=GrammarCut))
 
 data.frame(table(cut(data_1$WordsCount, breaks = matching$breaks$WordsCount)))
 
-mat_controls
-mat_controls$breaks$TenureSE
+matching
+matching$breaks$WordsCount
 
-str(mat_controls)
+matching$group.idx  #index of observations belonging to each group
+matching$w #weights for use in the estimates of the causal effects
 
-mat_controls$group.idx  #index of observations belonging to each group
-mat_controls$w #weights for use in the estimates of the causal effects
+#TODO understanding the output. Within each group find observations
+# with the same weights
+
+data_1 <- cbind(data_1, matching$w)
+colnames(data_1)[ncol(data_1)] <- "w"
+# remove unmatched observations
+data_1 <- subset(data_1, w > 0)
+
+##### Event 2 #####
+data_2 <- subset(data_str_tr, event == 2)
+
+imbalance(group=data_2$AcceptedByOriginator, data=data_2[vars])
+
+matching <- cem(treatment = "AcceptedByOriginator", data = data_2, 
+                drop = c("Id", "OwnerUserId", "ParentId", 
+                         "tstart", "tstop", "event",      
+                         "status"), keep.all=TRUE)
+
+# matching <- cem(treatment = "AcceptedByOriginator", data = data_2, 
+#                 drop = c("Id", "OwnerUserId", "ParentId", 
+#                          "tstart", "tstop", "event",      
+#                          "status"), 
+#                 cutpoints = list(Year=yearCut, TenureSE=SECut, TenureUX=UXCut,
+#                                  WordsCount=WordsCut, EditCount=EditCut, 
+#                                  UpMod=UpCut, DownMod=DownCut, 
+#                                  ExternalSource_PCT=ExternalCut, 
+#                                  CommentCount=CommentCut, Mockups=MockCut, 
+#                                  TotRep=ReputationCut, 
+#                                  CorrectGrammarScore=GrammarCut))
+
+matching
+matching$breaks$WordsCount
+
+matching$group.idx  #index of observations belonging to each group
+matching$w #weights for use in the estimates of the causal effects
 
 
-# take into account the other treatments variables and used them controls
-mat_cont_treat <- cem(treatment = "AcceptedByOriginator", data = data_1, 
-            drop = c("Id", "OwnerUserId", "ParentId", 
-                     "tstart", "tstop", "event",                
-                     "status"), 
-            cutpoints = list(Year=yearcut, TenureSE=SEcut, TenureUX=UXcut))
+data_2 <- cbind(data_2, matching$w)
+colnames(data_2)[ncol(data_2)] <- "w"
+# remove unmatched observations
+data_2 <- subset(data_2, w > 0)
 
-mat_cont_treat
+##### Event 3 #####
+data_3 <- subset(data_str_tr, event == 3)
+
+imbalance(group=data_3$AcceptedByOriginator, data=data_3[vars])
+
+matching <- cem(treatment = "AcceptedByOriginator", data = data_3, 
+                drop = c("Id", "OwnerUserId", "ParentId", 
+                         "tstart", "tstop", "event",      
+                         "status"), keep.all=TRUE)
+
+# matching <- cem(treatment = "AcceptedByOriginator", data = data_3, 
+#                 drop = c("Id", "OwnerUserId", "ParentId", 
+#                          "tstart", "tstop", "event",      
+#                          "status"), 
+#                 cutpoints = list(Year=yearCut, TenureSE=SECut, TenureUX=UXCut,
+#                                  WordsCount=WordsCut, EditCount=EditCut, 
+#                                  UpMod=UpCut, DownMod=DownCut, 
+#                                  ExternalSource_PCT=ExternalCut, 
+#                                  CommentCount=CommentCut, Mockups=MockCut, 
+#                                  TotRep=ReputationCut, 
+#                                  CorrectGrammarScore=GrammarCut))
+
+matching
+matching$breaks$WordsCount
+
+matching$group.idx  #index of observations belonging to each group
+matching$w #weights for use in the estimates of the causal effects
+
+
+data_3 <- cbind(data_3, matching$w)
+colnames(data_3)[ncol(data_3)] <- "w"
+# remove unmatched observations
+data_3 <- subset(data_3, w > 0)
+
+##### Event 4 #####
+data_4 <- subset(data_str_tr, event == 4)
+
+imbalance(group=data_4$AcceptedByOriginator, data=data_4[vars])
+
+matching <- cem(treatment = "AcceptedByOriginator", data = data_4, 
+                drop = c("Id", "OwnerUserId", "ParentId", 
+                         "tstart", "tstop", "event",      
+                         "status"), keep.all=TRUE)
+
+# matching <- cem(treatment = "AcceptedByOriginator", data = data_4, 
+#                 drop = c("Id", "OwnerUserId", "ParentId", 
+#                          "tstart", "tstop", "event",      
+#                          "status"), 
+#                 cutpoints = list(Year=yearCut, TenureSE=SECut, TenureUX=UXCut,
+#                                  WordsCount=WordsCut, EditCount=EditCut, 
+#                                  UpMod=UpCut, DownMod=DownCut, 
+#                                  ExternalSource_PCT=ExternalCut, 
+#                                  CommentCount=CommentCut, Mockups=MockCut, 
+#                                  TotRep=ReputationCut, 
+#                                  CorrectGrammarScore=GrammarCut))
+
+matching
+matching$breaks$WordsCount
+
+matching$group.idx  #index of observations belonging to each group
+matching$w #weights for use in the estimates of the causal effects
+
+
+data_4 <- cbind(data_4, matching$w)
+colnames(data_4)[ncol(data_4)] <- "w"
+# remove unmatched observations
+data_4 <- subset(data_4, w > 0)
+
+# row combine all events and then apply survivial analysis on top
+data_2 <- subset(data_2, OwnerUserId %in% data_1$OwnerUserId)
+data_3 <- subset(data_3, OwnerUserId %in% data_1$OwnerUserId & 
+                OwnerUserId %in% data_2$OwnerUserId)
+data_4 <- subset(data_4, OwnerUserId %in% data_1$OwnerUserId & 
+                   OwnerUserId %in% data_2$OwnerUserId &
+                   OwnerUserId %in% data_3$OwnerUserId)
+
+data_accepted <- rbind(data_1, data_2, data_3, data_4)
 
 
 # Add one secs to tstop where tstart and tstop are equal (TT)
-data_1$tstop <- ifelse(data_1$tstart == data_1$tstop, 
-                       data_1$tstop + 1, data_1$tstop)
+data_accepted$tstop <- ifelse(data_accepted$tstart == data_accepted$tstop, 
+                              data_accepted$tstop + 1, data_accepted$tstop)
 
-foo <- cbind(data_1, mat_controls$w)
-colnames(foo)[25] <- "w"
-foo <- subset(foo, w > 0)
-
-
+# Survival Modelling: PWP-TT
 model_pwp_tt = coxph(Surv(tstart, tstop, status) ~
                           AcceptedByOriginator +
                           Year +
@@ -340,22 +427,16 @@ model_pwp_tt = coxph(Surv(tstart, tstop, status) ~
                           CorrectGrammarScore +
                           TotRep +
                           cluster(OwnerUserId) + strata(event), method="breslow", 
-                          data=foo, robust = TRUE, weights = w)
+                          data=data_accepted, robust = TRUE, weights = w)
 
 
 
 summary(model_pwp_tt)
 
-# Treatments plus controls
-bar <- cbind(data_1, mat_cont_treat$w)
-colnames(bar)[25] <- "w"
-bar <- subset(bar, w > 0)
-
-
 # to do find the weight for all the strata from 1 to four and add them together
 # prune observations where weight is zero
 
-model_pwp_tt = coxph(Surv(tstart, tstop, status) ~
+model_pwp_gt = coxph(Surv(tstop-tstart, status) ~
                        AcceptedByOriginator +
                        EditCount +
                        UpMod + 
@@ -374,11 +455,11 @@ model_pwp_tt = coxph(Surv(tstart, tstop, status) ~
                        CorrectGrammarScore +
                        TotRep +
                        cluster(OwnerUserId) + strata(event), method="breslow", 
-                       data=bar, robust = TRUE, weights = w)
+                       data=data_accepted, robust = TRUE, weights = w)
 
 
 
-summary(model_pwp_tt)
+summary(model_pwp_gt)
 
 
 # reframe the other treatments as mutichotomous
@@ -390,10 +471,4 @@ summary(model_pwp_tt)
 #                                       treatment groups)
 # Continuous Treatments: Coarsen treatment and apply CEM as usual
 
-# 3.6.1 Matching on Missingness
-mat_cont_treat_miss <- cem("AcceptedByOriginator", data_str_tr_1, 
-                           drop = c("Id", "OwnerUserId", "ParentId", 
-                                    "tstart", "tstop", "event",                
-                                    "status"),
-                           cutpoints = list(Year=yearcut, TenureSE=SEcut, TenureUX=UXcut))
 
